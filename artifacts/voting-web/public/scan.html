@@ -35,7 +35,7 @@
   </div>
 
   <section class="section">
-    <div class="section-inner" style="max-width:600px;">
+    <div class="section-inner" style="max-width:680px;">
 
       <div id="scanPanel">
         <div class="scanner-card">
@@ -44,19 +44,17 @@
             <video id="video" autoplay playsinline muted></video>
             <canvas id="canvas" style="display:none;"></canvas>
             <div class="scanner-overlay">
-              <div class="scanner-corner tl"></div>
-              <div class="scanner-corner tr"></div>
-              <div class="scanner-corner bl"></div>
-              <div class="scanner-corner br"></div>
+              <div class="scanner-corner tl"></div><div class="scanner-corner tr"></div>
+              <div class="scanner-corner bl"></div><div class="scanner-corner br"></div>
               <div class="scanner-line"></div>
             </div>
           </div>
           <div id="scanStatus" class="scan-status">Initializing camera…</div>
-          <div style="margin-top:16px; text-align:center;">
-            <span style="font-size:12px; color:var(--gray-text);">Or enter manually:</span>
-            <div style="display:flex; gap:8px; margin-top:8px;">
-              <input type="text" id="manualInput" placeholder="Student number…" style="flex:1; padding:9px 12px; border:1.5px solid var(--gray-mid); border-radius:8px; font-size:14px; outline:none;" />
-              <button class="btn btn-gold" style="padding:9px 18px; font-size:13px;" onclick="lookupStudent(document.getElementById('manualInput').value.trim())">Look Up</button>
+          <div style="margin-top:16px;text-align:center;">
+            <span style="font-size:12px;color:var(--gray-text);">Or enter manually:</span>
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <input type="text" id="manualInput" placeholder="Student number…" style="flex:1;padding:9px 12px;border:1.5px solid var(--gray-mid);border-radius:8px;font-size:14px;outline:none;" />
+              <button class="btn btn-gold" style="padding:9px 18px;font-size:13px;" onclick="lookupStudent(document.getElementById('manualInput').value.trim())">Look Up</button>
             </div>
           </div>
         </div>
@@ -68,20 +66,20 @@
             <div class="ballot-student-name" id="ballotStudentName"></div>
             <div class="ballot-student-meta" id="ballotStudentMeta"></div>
           </div>
-          <button class="btn btn-outline" style="font-size:13px; padding:8px 16px; color:var(--blue-dark); border-color:var(--blue-dark);" onclick="resetScanner()">← Back</button>
+          <button class="btn btn-outline" style="font-size:13px;padding:8px 16px;color:var(--white);border-color:rgba(255,255,255,.4);" onclick="resetScanner()">← Back</button>
         </div>
         <div id="ballotForm">
           <div id="positions-list"></div>
-          <div style="margin-top:32px; padding:20px; background:var(--gray-light); border-radius:12px;">
-            <p style="font-size:13px; color:var(--gray-text); margin-bottom:16px;">⚠️ <strong>Review your choices before submitting.</strong> You can only vote once.</p>
-            <button class="btn btn-gold" style="width:100%; font-size:16px; padding:14px;" id="submitBtn" onclick="submitVote()">Submit My Vote</button>
+          <div style="margin-top:32px;padding:20px;background:var(--gray-light);border-radius:12px;">
+            <p style="font-size:13px;color:var(--gray-text);margin-bottom:16px;">⚠️ <strong>Review your choices before submitting.</strong> You can only vote once.</p>
+            <button class="btn btn-gold" style="width:100%;font-size:16px;padding:14px;" id="submitBtn" onclick="submitVote()">Submit My Vote</button>
           </div>
         </div>
         <div id="successPanel" style="display:none;" class="success-panel">
           <div class="success-icon">✅</div>
           <h2>Vote Recorded!</h2>
           <p id="successName"></p>
-          <p style="color:var(--gray-text); font-size:14px; margin-bottom:24px;">Your vote has been securely recorded. Thank you!</p>
+          <p style="color:var(--gray-text);font-size:14px;margin-bottom:24px;">Your vote has been securely recorded. Thank you for participating!</p>
           <button class="btn btn-gold" style="padding:12px 32px;" onclick="resetScanner()">Scan Next Student</button>
         </div>
       </div>
@@ -115,8 +113,7 @@
         video.onloadedmetadata = () => {
           canvas.width = video.videoWidth; canvas.height = video.videoHeight;
           scanning = true;
-          scanStatus.textContent = 'Ready — waiting for QR code…';
-          scanStatus.style.color = '#2e7d32';
+          scanStatus.textContent = 'Ready — waiting for QR code…'; scanStatus.style.color = '#2e7d32';
           tick();
         };
       } catch (e) { scanStatus.textContent = 'Camera access denied. Use manual entry below.'; scanStatus.style.color = '#c53030'; }
@@ -153,6 +150,11 @@
       candidates = await res.json();
     }
 
+    function candidateAvatar(c) {
+      if (c.photoData) return `<img src="${c.photoData}" class="cand-photo" alt="${c.name}" />`;
+      return `<div class="candidate-avatar">${c.name.charAt(0)}</div>`;
+    }
+
     function showBallot(student) {
       scanning = false;
       document.getElementById('scanPanel').style.display = 'none';
@@ -164,14 +166,14 @@
 
       const positions = {};
       for (const c of candidates) { if (!positions[c.position]) positions[c.position] = []; positions[c.position].push(c); }
-      const posOrder = ['President', 'Vice President', 'Secretary', 'Treasurer', 'Auditor', 'Public Relations Officer'];
+      const posOrder = ['President','Vice President','Secretary','Treasurer','Auditor','Public Relations Officer'];
       const sorted = Object.keys(positions).sort((a, b) => { const ai = posOrder.indexOf(a), bi = posOrder.indexOf(b); if (ai === -1 && bi === -1) return a.localeCompare(b); if (ai === -1) return 1; if (bi === -1) return -1; return ai - bi; });
 
       let html = '';
       for (const pos of sorted) {
         html += `<div class="ballot-position"><div class="ballot-pos-title">${pos}</div><div class="ballot-candidates">`;
         for (const c of positions[pos]) {
-          html += `<label class="candidate-option"><input type="radio" name="pos_${pos.replace(/\s+/g,'_')}" value="${c.id}" data-position="${pos}" /><div class="candidate-option-inner"><div class="candidate-avatar">${c.name.charAt(0)}</div><div class="candidate-details"><div class="candidate-name">${c.name}</div><div class="candidate-meta">${c.yearLevel} — ${c.section}</div>${c.motto ? `<div class="candidate-motto">"${c.motto}"</div>` : ''}</div><div class="candidate-check">✓</div></div></label>`;
+          html += `<label class="candidate-option"><input type="radio" name="pos_${pos.replace(/\s+/g,'_')}" value="${c.id}" data-position="${pos}" /><div class="candidate-option-inner">${candidateAvatar(c)}<div class="candidate-details"><div class="candidate-name">${c.name}</div><div class="candidate-meta">${c.yearLevel} — ${c.section}</div>${c.motto ? `<div class="candidate-motto">"${c.motto}"</div>` : ''}</div><div class="candidate-check">✓</div></div></label>`;
         }
         html += '</div></div>';
       }

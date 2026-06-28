@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Register — Don Bosco TC Election 2025</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-inner">
+      <div class="nav-brand">
+        <div class="nav-logo">DB</div>
+        <div class="nav-title">
+          <span>Don Bosco TC</span>
+          <span>Mati City — Officers Election 2025</span>
+        </div>
+      </div>
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/myqr.html">My QR Code</a></li>
+        <li><a href="/scan.html">Vote</a></li>
+        <li><a href="/results.html">Results</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <div class="nav-logo" style="width:64px;height:64px;font-size:26px;margin:0 auto 12px;">DB</div>
+        <h2>Admin Registration</h2>
+        <p>Don Bosco TC — Officers Election 2025</p>
+      </div>
+
+      <div id="pendingPanel" style="display:none;" class="pending-notice">
+        <div style="font-size:40px;margin-bottom:12px;">⏳</div>
+        <h3 style="color:var(--blue-dark);margin-bottom:8px;">Registration Sent!</h3>
+        <p>Your account is <strong>pending approval</strong> by an existing admin. You will be able to log in once your account is approved.</p>
+        <a href="/admin-login.html" class="btn btn-gold" style="margin-top:20px;display:inline-block;">Back to Login</a>
+      </div>
+
+      <div id="regForm">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="username" placeholder="Choose a username (min. 3 chars)" autocomplete="username" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="password" placeholder="Choose a password (min. 6 chars)" autocomplete="new-password" />
+            <button type="button" class="pw-toggle" onclick="togglePw('password')">👁</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Confirm Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="password2" placeholder="Re-enter your password" autocomplete="new-password" />
+            <button type="button" class="pw-toggle" onclick="togglePw('password2')">👁</button>
+          </div>
+        </div>
+
+        <div id="errMsg" class="error-msg" style="display:none;"></div>
+
+        <button class="btn btn-gold" style="width:100%;padding:13px;font-size:15px;margin-top:4px;" onclick="register()">Create Account</button>
+
+        <div class="auth-alt">
+          Already have an account? <a href="/admin-login.html">Log in here</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand"><h3>Don Bosco Training Center</h3><p>Mati City, Davao Oriental — Officers Election 2025.</p></div>
+    </div>
+    <div class="footer-bottom">&copy; 2025 Don Bosco Training Center, Mati City.</div>
+  </footer>
+
+  <script>
+    function togglePw(id) {
+      const pw = document.getElementById(id);
+      pw.type = pw.type === 'password' ? 'text' : 'password';
+    }
+    async function register() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const password2 = document.getElementById('password2').value;
+      const errEl = document.getElementById('errMsg');
+      errEl.style.display = 'none';
+      if (!username || !password || !password2) { errEl.textContent = 'Please fill in all fields.'; errEl.style.display = 'block'; return; }
+      if (password !== password2) { errEl.textContent = 'Passwords do not match.'; errEl.style.display = 'block'; return; }
+      try {
+        const res = await fetch('/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ username, password }) });
+        const data = await res.json();
+        if (!res.ok) { errEl.textContent = data.error || 'Registration failed.'; errEl.style.display = 'block'; return; }
+        if (data.isFirst) {
+          window.location.href = '/admin.html';
+        } else {
+          document.getElementById('regForm').style.display = 'none';
+          document.getElementById('pendingPanel').style.display = 'block';
+        }
+      } catch (e) { errEl.textContent = 'Network error. Please try again.'; errEl.style.display = 'block'; }
+    }
+  </script>
+</body>
+</html>

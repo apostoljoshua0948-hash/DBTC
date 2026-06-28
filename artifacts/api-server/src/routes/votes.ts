@@ -8,13 +8,14 @@ router.post("/votes", async (req, res) => {
   const { studentNo, votes } = req.body as { studentNo: string; votes: { candidateId: number; position: string }[] };
 
   if (!studentNo || !Array.isArray(votes) || votes.length === 0) {
-    return res.status(400).json({ error: "Missing studentNo or votes" });
+    res.status(400).json({ error: "Missing studentNo or votes" });
+    return;
   }
 
   try {
     const [student] = await db.select().from(studentsTable).where(eq(studentsTable.studentNo, studentNo));
-    if (!student) return res.status(404).json({ error: "Student not found" });
-    if (student.hasVoted) return res.status(409).json({ error: "Student has already voted" });
+    if (!student) { res.status(404).json({ error: "Student not found" }); return; }
+    if (student.hasVoted) { res.status(409).json({ error: "Student has already voted" }); return; }
 
     await db.transaction(async (tx) => {
       for (const v of votes) {
@@ -28,9 +29,10 @@ router.post("/votes", async (req, res) => {
     });
 
     res.json({ ok: true, message: "Vote recorded successfully" });
-  } catch (err: any) {
+  } catch (err: unknown) {
     req.log.error(err);
-    res.status(500).json({ error: err.message || "Failed to record vote" });
+    const msg = err instanceof Error ? err.message : "Failed to record vote";
+    res.status(500).json({ error: msg });
   }
 });
 

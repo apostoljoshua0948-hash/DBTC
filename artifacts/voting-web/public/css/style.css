@@ -220,3 +220,46 @@ footer { background: var(--blue-dark); color: rgba(255,255,255,.7); margin-top: 
   .results-summary-bar { gap: 16px; }
   .rsb-refresh { margin-left: 0; width: 100%; }
 }
+
+/* ── AUTH PAGES ── */
+.auth-page { display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 200px); padding: 40px 24px; background: var(--gray-light); flex: 1; }
+.auth-card { background: var(--white); border: 1px solid var(--gray-mid); border-radius: 20px; padding: 40px 36px; width: 100%; max-width: 440px; box-shadow: 0 4px 32px rgba(0,32,100,.10); }
+.auth-logo { text-align: center; margin-bottom: 28px; }
+.auth-logo h2 { font-size: 22px; font-weight: 800; color: var(--blue-dark); margin-bottom: 4px; }
+.auth-logo p { font-size: 13px; color: var(--gray-text); }
+.auth-alt { text-align: center; margin-top: 20px; font-size: 13px; color: var(--gray-text); }
+.auth-alt a { color: var(--blue); font-weight: 600; }
+.pw-wrap { position: relative; }
+.pw-wrap input { padding-right: 44px; }
+.pw-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px; padding: 4px; }
+
+/* ── PENDING NOTICE ── */
+.pending-notice { text-align: center; padding: 8px 0; }
+.pending-notice p { color: var(--gray-text); font-size: 14px; line-height: 1.6; }
+
+/* ── PHOTO UPLOAD ── */
+.photo-upload-area { border: 2px dashed var(--gray-mid); border-radius: 12px; padding: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: border-color .2s, background .2s; min-height: 120px; }
+.photo-upload-area:hover { border-color: var(--blue); background: #f0f4ff; }
+.photo-preview-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--gray-text); font-size: 14px; }
+
+/* ── CANDIDATE PHOTO IN BALLOT ── */
+.cand-photo { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 2px solid var(--gray-mid); }
+.candidate-option input:checked + .candidate-option-inner .cand-photo { border-color: var(--blue); }
+
+/* ── BADGE ORANGE (pending) ── */
+.badge-orange { background: #fff3cd; color: #856404; }
+
+/* ── ADMIN TABS (fix active on dynamic) ── */
+.tab-btn:focus { outline: none; }
+
+/* ── MOBILE ── */
+@media (max-width: 640px) {
+  .auth-card { padding: 28px 20px; }
+  .admin-form-grid { grid-template-columns: 1fr; }
+  .admin-form-grid .form-group[style*="grid-column"] { grid-column: 1; }
+  .steps-grid { grid-template-columns: 1fr; }
+  .stats-inner { grid-template-columns: repeat(2, 1fr); }
+  .footer-inner { grid-template-columns: 1fr; gap: 24px; }
+  .results-summary-bar { gap: 12px; }
+  .rsb-refresh { margin-left: 0; width: 100%; }
+}

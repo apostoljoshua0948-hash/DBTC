@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { db, studentsTable, insertStudentSchema } from "@workspace/db";
 import { eq } from "drizzle-orm";
+import { requireAdmin } from "../middleware/auth";
 
 const router = Router();
 
-router.get("/students", async (req, res) => {
+router.get("/students", requireAdmin, async (req, res) => {
   try {
     const students = await db.select().from(studentsTable).orderBy(studentsTable.name);
     res.json(students);
@@ -19,8 +20,11 @@ router.get("/students/:studentNo", async (req, res) => {
     const [student] = await db
       .select()
       .from(studentsTable)
-      .where(eq(studentsTable.studentNo, req.params.studentNo));
-    if (!student) return res.status(404).json({ error: "Student not found" });
+      .where(eq(studentsTable.studentNo, String(req.params.studentNo)));
+    if (!student) {
+      res.status(404).json({ error: "Student not found" });
+      return;
+    }
     res.json(student);
   } catch (err) {
     req.log.error(err);
@@ -28,22 +32,29 @@ router.get("/students/:studentNo", async (req, res) => {
   }
 });
 
-router.post("/students", async (req, res) => {
+router.post("/students", requireAdmin, async (req, res) => {
   const parsed = insertStudentSchema.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: parsed.error.issues });
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.issues });
+    return;
+  }
   try {
     const [student] = await db.insert(studentsTable).values(parsed.data).returning();
     res.status(201).json(student);
-  } catch (err: any) {
-    if (err.code === "23505") return res.status(409).json({ error: "Student number already exists" });
+  } catch (err: unknown) {
+    const code = (err as { code?: string }).code;
+    if (code === "23505") {
+      res.status(409).json({ error: "Student number already exists" });
+      return;
+    }
     req.log.error(err);
     res.status(500).json({ error: "Failed to add student" });
   }
 });
 
-router.delete("/students/:studentNo", async (req, res) => {
+router.delete("/students/:studentNo", requireAdmin, async (req, res) => {
   try {
-    await db.delete(studentsTable).where(eq(studentsTable.studentNo, req.params.studentNo));
+    await db.delete(studentsTable).where(eq(studentsTable.studentNo, String(req.params.studentNo)));
     res.json({ ok: true });
   } catch (err) {
     req.log.error(err);

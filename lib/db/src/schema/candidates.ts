@@ -9,6 +9,7 @@ export const candidatesTable = pgTable("candidates", {
   yearLevel: text("year_level").notNull(),
   section: text("section").notNull(),
   motto: text("motto").default(""),
+  photoData: text("photo_data").default(""),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
