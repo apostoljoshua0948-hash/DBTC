@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Don Bosco TC Election 2025</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-inner">
+      <div class="nav-brand">
+        <div class="nav-logo">DB</div>
+        <div class="nav-title">
+          <span>Don Bosco TC</span>
+          <span>Mati City — Officers Election 2025</span>
+        </div>
+      </div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/">Home</a></li>
+        <li><a href="/myqr.html">My QR Code</a></li>
+        <li><a href="/scan.html">Vote</a></li>
+        <li><a href="/results.html">Results</a></li>
+        <li><a href="/admin.html" class="active">Admin</a></li>
+      </ul>
+      <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <h1>Admin <span>Panel</span></h1>
+    <p>Manage registered students and election candidates.</p>
+  </div>
+
+  <section class="section">
+    <div class="section-inner">
+
+      <div class="admin-tabs">
+        <button class="tab-btn active" onclick="switchTab('students')">👤 Students</button>
+        <button class="tab-btn" onclick="switchTab('candidates')">🏆 Candidates</button>
+      </div>
+
+      <div id="tab-students">
+        <div class="admin-panel">
+          <h3 class="admin-panel-title">Register a Student</h3>
+          <div class="admin-form-grid">
+            <div class="form-group"><label>Student Number</label><input type="text" id="s-no" placeholder="e.g. DBTC-2024-001" /></div>
+            <div class="form-group"><label>Full Name</label><input type="text" id="s-name" placeholder="e.g. Juan dela Cruz" /></div>
+            <div class="form-group"><label>Year Level</label><select id="s-year"><option value="">Select year level</option><option>Grade 11</option><option>Grade 12</option></select></div>
+            <div class="form-group"><label>Section</label><input type="text" id="s-section" placeholder="e.g. STEM A" /></div>
+          </div>
+          <div id="s-err" class="error-msg" style="display:none;"></div>
+          <button class="btn btn-gold" onclick="addStudent()">+ Add Student</button>
+        </div>
+        <div class="admin-panel" style="margin-top:24px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <h3 class="admin-panel-title" style="margin-bottom:0;">Registered Students</h3>
+            <button class="btn btn-outline" style="font-size:12px; padding:6px 14px; color:var(--blue-dark); border-color:var(--blue-dark);" onclick="loadStudents()">↻ Refresh</button>
+          </div>
+          <div class="admin-search"><input type="text" id="s-search" placeholder="Search students…" oninput="filterStudents()" /></div>
+          <div id="students-table-wrap"></div>
+        </div>
+      </div>
+
+      <div id="tab-candidates" style="display:none;">
+        <div class="admin-panel">
+          <h3 class="admin-panel-title">Add a Candidate</h3>
+          <div class="admin-form-grid">
+            <div class="form-group"><label>Full Name</label><input type="text" id="c-name" placeholder="e.g. Juan dela Cruz" /></div>
+            <div class="form-group"><label>Position</label>
+              <select id="c-position">
+                <option value="">Select position</option>
+                <option>President</option><option>Vice President</option><option>Secretary</option>
+                <option>Treasurer</option><option>Auditor</option><option>Public Relations Officer</option>
+                <option>Committee on Academics</option><option>Committee on Culture &amp; Arts</option>
+                <option>Committee on Sports</option><option>Committee on Environment</option>
+                <option>Committee on Health &amp; Wellness</option><option>Committee on Spirituality</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Year Level</label><select id="c-year"><option value="">Select year level</option><option>Grade 11</option><option>Grade 12</option></select></div>
+            <div class="form-group"><label>Section</label><input type="text" id="c-section" placeholder="e.g. STEM A" /></div>
+            <div class="form-group" style="grid-column:1/-1;"><label>Campaign Motto <span style="font-weight:400; color:#888;">(optional)</span></label><input type="text" id="c-motto" placeholder="e.g. Serving with love and dedication" /></div>
+          </div>
+          <div id="c-err" class="error-msg" style="display:none;"></div>
+          <button class="btn btn-gold" onclick="addCandidate()">+ Add Candidate</button>
+        </div>
+        <div class="admin-panel" style="margin-top:24px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <h3 class="admin-panel-title" style="margin-bottom:0;">Registered Candidates</h3>
+            <button class="btn btn-outline" style="font-size:12px; padding:6px 14px; color:var(--blue-dark); border-color:var(--blue-dark);" onclick="loadCandidates()">↻ Refresh</button>
+          </div>
+          <div id="candidates-table-wrap"></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand"><h3>Don Bosco Training Center</h3><p>Mati City, Davao Oriental — Officers Election 2025.</p></div>
+      <div class="footer-col"><h4>Quick Links</h4><ul><li><a href="/">Home</a></li><li><a href="/myqr.html">My QR Code</a></li><li><a href="/scan.html">Voting Booth</a></li><li><a href="/results.html">Results</a></li></ul></div>
+    </div>
+    <div class="footer-bottom">&copy; 2025 Don Bosco Training Center — Officers Election, Mati City.</div>
+  </footer>
+
+  <script>
+    const toggle = document.getElementById('navToggle');
+    const links = document.getElementById('navLinks');
+    toggle.addEventListener('click', () => links.classList.toggle('open'));
+
+    let allStudents = [];
+
+    function switchTab(tab) {
+      document.getElementById('tab-students').style.display = tab === 'students' ? 'block' : 'none';
+      document.getElementById('tab-candidates').style.display = tab === 'candidates' ? 'block' : 'none';
+      document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', (i === 0) === (tab === 'students')));
+      if (tab === 'students') loadStudents(); else loadCandidates();
+    }
+
+    function filterStudents() {
+      const q = document.getElementById('s-search').value.toLowerCase();
+      renderStudentsTable(allStudents.filter(s => s.name.toLowerCase().includes(q) || s.studentNo.toLowerCase().includes(q) || s.section.toLowerCase().includes(q)));
+    }
+
+    async function loadStudents() {
+      try { const res = await fetch('/api/students'); allStudents = await res.json(); filterStudents(); }
+      catch (e) { document.getElementById('students-table-wrap').innerHTML = '<div class="loading-msg">Failed to load students.</div>'; }
+    }
+
+    function renderStudentsTable(students) {
+      if (students.length === 0) { document.getElementById('students-table-wrap').innerHTML = '<div class="loading-msg" style="padding:24px;">No students registered yet.</div>'; return; }
+      let html = '<div class="admin-table-scroll"><table class="admin-table"><thead><tr><th>Student No.</th><th>Name</th><th>Year</th><th>Section</th><th>Status</th><th></th></tr></thead><tbody>';
+      for (const s of students) {
+        html += `<tr><td><code style="font-size:12px;">${s.studentNo}</code></td><td>${s.name}</td><td>${s.yearLevel}</td><td>${s.section}</td><td>${s.hasVoted ? '<span class="badge badge-green">Voted</span>' : '<span class="badge badge-gray">Not Yet</span>'}</td><td><button class="del-btn" onclick="deleteStudent('${s.studentNo}', '${s.name}')">✕</button></td></tr>`;
+      }
+      html += '</tbody></table></div>';
+      document.getElementById('students-table-wrap').innerHTML = html;
+    }
+
+    async function addStudent() {
+      const no = document.getElementById('s-no').value.trim(), name = document.getElementById('s-name').value.trim();
+      const year = document.getElementById('s-year').value, section = document.getElementById('s-section').value.trim();
+      const errEl = document.getElementById('s-err'); errEl.style.display = 'none';
+      if (!no || !name || !year || !section) { errEl.textContent = 'All fields are required.'; errEl.style.display = 'block'; return; }
+      try {
+        const res = await fetch('/api/students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ studentNo: no, name, yearLevel: year, section }) });
+        const data = await res.json();
+        if (!res.ok) { errEl.textContent = data.error || 'Failed to add student.'; errEl.style.display = 'block'; return; }
+        ['s-no', 's-name', 's-section'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('s-year').value = '';
+        loadStudents();
+      } catch (e) { errEl.textContent = 'Network error.'; errEl.style.display = 'block'; }
+    }
+
+    async function deleteStudent(studentNo, name) {
+      if (!confirm(`Remove ${name} (${studentNo})?`)) return;
+      await fetch('/api/students/' + encodeURIComponent(studentNo), { method: 'DELETE' });
+      loadStudents();
+    }
+
+    async function loadCandidates() {
+      try {
+        const res = await fetch('/api/candidates');
+        const cands = await res.json();
+        if (cands.length === 0) { document.getElementById('candidates-table-wrap').innerHTML = '<div class="loading-msg" style="padding:24px;">No candidates added yet.</div>'; return; }
+        let html = '<div class="admin-table-scroll"><table class="admin-table"><thead><tr><th>Name</th><th>Position</th><th>Year</th><th>Section</th><th>Motto</th><th></th></tr></thead><tbody>';
+        for (const c of cands) {
+          html += `<tr><td><strong>${c.name}</strong></td><td><span class="badge badge-blue">${c.position}</span></td><td>${c.yearLevel}</td><td>${c.section}</td><td style="font-size:12px; color:#888; max-width:180px;">${c.motto || '—'}</td><td><button class="del-btn" onclick="deleteCandidate(${c.id}, '${c.name}')">✕</button></td></tr>`;
+        }
+        html += '</tbody></table></div>';
+        document.getElementById('candidates-table-wrap').innerHTML = html;
+      } catch (e) { document.getElementById('candidates-table-wrap').innerHTML = '<div class="loading-msg">Failed to load candidates.</div>'; }
+    }
+
+    async function addCandidate() {
+      const name = document.getElementById('c-name').value.trim(), position = document.getElementById('c-position').value;
+      const year = document.getElementById('c-year').value, section = document.getElementById('c-section').value.trim();
+      const motto = document.getElementById('c-motto').value.trim();
+      const errEl = document.getElementById('c-err'); errEl.style.display = 'none';
+      if (!name || !position || !year || !section) { errEl.textContent = 'Name, Position, Year Level, and Section are required.'; errEl.style.display = 'block'; return; }
+      try {
+        const res = await fetch('/api/candidates', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, position, yearLevel: year, section, motto }) });
+        const data = await res.json();
+        if (!res.ok) { errEl.textContent = data.error || 'Failed to add candidate.'; errEl.style.display = 'block'; return; }
+        ['c-name', 'c-section', 'c-motto'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('c-position').value = ''; document.getElementById('c-year').value = '';
+        loadCandidates();
+      } catch (e) { errEl.textContent = 'Network error.'; errEl.style.display = 'block'; }
+    }
+
+    async function deleteCandidate(id, name) {
+      if (!confirm(`Remove candidate ${name}?`)) return;
+      await fetch('/api/candidates/' + id, { method: 'DELETE' });
+      loadCandidates();
+    }
+
+    loadStudents();
+  </script>
+</body>
+</html>

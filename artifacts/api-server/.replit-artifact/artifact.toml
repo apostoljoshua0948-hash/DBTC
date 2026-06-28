@@ -1,13 +1,13 @@
 kind = "api"
-previewPath = "/"
-title = "Don Bosco TC — Student Officers"
+previewPath = "/api"
+title = "Don Bosco TC — API"
 version = "1.0.0"
 id = "3B4_FFSkEVBkAeYMFRJ2e"
 
 [[services]]
 localPort = 8080
 name = "API Server"
-paths = ["/"]
+paths = ["/api"]
 
 [services.development]
 run = "pnpm --filter @workspace/api-server run dev"

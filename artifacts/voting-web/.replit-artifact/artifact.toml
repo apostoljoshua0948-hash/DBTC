@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Don Bosco TC — Officers Election"
+version = "1.0.0"
+id = "artifacts/voting-web"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24146
+
+[services.development]
+run = "pnpm --filter @workspace/voting-web run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/voting-web", "run", "build" ]
+publicDir = "artifacts/voting-web/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24146"
+BASE_PATH = "/"
