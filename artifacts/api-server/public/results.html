@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Results — Don Bosco TC Election 2025</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-inner">
+      <div class="nav-brand">
+        <div class="nav-logo">DB</div>
+        <div class="nav-title">
+          <span>Don Bosco TC</span>
+          <span>Mati City — Officers Election 2025</span>
+        </div>
+      </div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/index.html">Home</a></li>
+        <li><a href="/myqr.html">My QR Code</a></li>
+        <li><a href="/scan.html">Vote</a></li>
+        <li><a href="/results.html" class="active">Results</a></li>
+        <li><a href="/admin.html">Admin</a></li>
+      </ul>
+      <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <h1>Election <span>Results</span></h1>
+    <p>Live vote tally for the Officers Election A.Y. 2024–2025. Auto-refreshes every 30 seconds.</p>
+  </div>
+
+  <section class="section">
+    <div class="section-inner">
+
+      <div class="results-summary-bar" id="summaryBar">
+        <div class="rsb-item"><span id="rVoted">—</span><label>Votes Cast</label></div>
+        <div class="rsb-item"><span id="rTotal">—</span><label>Registered</label></div>
+        <div class="rsb-item"><span id="rPct">—</span><label>Turnout</label></div>
+        <div class="rsb-item rsb-refresh"><button class="btn btn-gold" style="padding:8px 20px; font-size:13px;" onclick="loadResults()">↻ Refresh</button></div>
+      </div>
+
+      <div id="resultsContainer">
+        <div class="loading-msg" style="padding:60px; text-align:center;">Loading results…</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <h3>Don Bosco Training Center</h3>
+        <p>Mati City, Davao Oriental — Officers Election 2025.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="/index.html">Home</a></li>
+          <li><a href="/myqr.html">My QR Code</a></li>
+          <li><a href="/scan.html">Voting Booth</a></li>
+          <li><a href="/results.html">Results</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">&copy; 2025 Don Bosco Training Center — Officers Election, Mati City.</div>
+  </footer>
+
+  <script>
+    const toggle = document.getElementById('navToggle');
+    const links = document.getElementById('navLinks');
+    toggle.addEventListener('click', () => links.classList.toggle('open'));
+
+    const posOrder = ['President', 'Vice President', 'Secretary', 'Treasurer', 'Auditor', 'Public Relations Officer'];
+
+    async function loadResults() {
+      try {
+        const res = await fetch('/api/results');
+        const data = await res.json();
+
+        document.getElementById('rVoted').textContent = data.totalVoted;
+        document.getElementById('rTotal').textContent = data.totalStudents;
+        const pct = data.totalStudents > 0 ? Math.round((data.totalVoted / data.totalStudents) * 100) : 0;
+        document.getElementById('rPct').textContent = pct + '%';
+
+        const container = document.getElementById('resultsContainer');
+
+        if (data.results.length === 0) {
+          container.innerHTML = '<div class="loading-msg" style="padding:60px; text-align:center;">No votes recorded yet.</div>';
+          return;
+        }
+
+        const grouped = {};
+        for (const r of data.results) {
+          if (!grouped[r.position]) grouped[r.position] = [];
+          grouped[r.position].push(r);
+        }
+
+        const sortedPos = Object.keys(grouped).sort((a, b) => {
+          const ai = posOrder.indexOf(a), bi = posOrder.indexOf(b);
+          if (ai === -1 && bi === -1) return a.localeCompare(b);
+          if (ai === -1) return 1; if (bi === -1) return -1;
+          return ai - bi;
+        });
+
+        let html = '';
+        for (const pos of sortedPos) {
+          const cands = grouped[pos];
+          const total = cands.reduce((s, c) => s + c.voteCount, 0);
+          const maxVotes = cands[0]?.voteCount || 0;
+
+          html += `<div class="result-block">
+            <div class="result-block-title">${pos}</div>
+            <div class="result-candidates-list">`;
+
+          cands.forEach((c, i) => {
+            const pct = total > 0 ? Math.round((c.voteCount / total) * 100) : 0;
+            const isLeader = i === 0 && c.voteCount > 0;
+            html += `<div class="result-row ${isLeader ? 'result-row-leader' : ''}">
+              <div class="result-rank">${i + 1}</div>
+              <div class="result-cand-info">
+                <div class="result-cand-name">${isLeader ? '🏆 ' : ''}${c.candidateName}</div>
+                <div class="result-bar-wrap">
+                  <div class="result-bar" style="width:${maxVotes > 0 ? Math.round((c.voteCount/maxVotes)*100) : 0}%"></div>
+                </div>
+              </div>
+              <div class="result-cand-count">
+                <strong>${c.voteCount}</strong>
+                <span>${pct}%</span>
+              </div>
+            </div>`;
+          });
+
+          html += `</div><div class="result-block-total">${total} total vote${total !== 1 ? 's' : ''} for this position</div></div>`;
+        }
+
+        container.innerHTML = html;
+      } catch (e) {
+        document.getElementById('resultsContainer').innerHTML = '<div class="loading-msg" style="padding:60px; text-align:center;">Failed to load results. Please try again.</div>';
+      }
+    }
+
+    loadResults();
+    setInterval(loadResults, 30000);
+  </script>
+</body>
+</html>

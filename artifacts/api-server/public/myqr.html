@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My QR Code — Don Bosco TC Election 2025</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-inner">
+      <div class="nav-brand">
+        <div class="nav-logo">DB</div>
+        <div class="nav-title">
+          <span>Don Bosco TC</span>
+          <span>Mati City — Officers Election 2025</span>
+        </div>
+      </div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/index.html">Home</a></li>
+        <li><a href="/myqr.html" class="active">My QR Code</a></li>
+        <li><a href="/scan.html">Vote</a></li>
+        <li><a href="/results.html">Results</a></li>
+        <li><a href="/admin.html">Admin</a></li>
+      </ul>
+      <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <h1>My <span>QR Code</span></h1>
+    <p>Enter your student number to display your voter QR code. Show this to the election officer at the voting booth.</p>
+  </div>
+
+  <section class="section">
+    <div class="section-inner" style="max-width:520px;">
+
+      <div class="card" style="border-radius:16px; overflow:visible;">
+        <div class="card-body" style="padding:32px;">
+          <h3 style="font-size:18px; font-weight:700; color:var(--blue-dark); margin-bottom:20px;">Enter Your Student Number</h3>
+          <div class="form-group">
+            <label for="studentNo">Student Number</label>
+            <input type="text" id="studentNo" placeholder="e.g. DBTC-2024-001" autocomplete="off" style="font-size:16px; padding:12px 14px;" />
+          </div>
+          <button class="btn btn-gold" style="width:100%; font-size:15px; padding:13px;" onclick="generateQR()">Generate My QR Code</button>
+          <div id="errMsg" class="error-msg" style="display:none;"></div>
+        </div>
+      </div>
+
+      <div id="qrSection" style="display:none; margin-top:32px;">
+        <div class="qr-card">
+          <div class="qr-header">
+            <div class="nav-logo" style="width:56px; height:56px; font-size:22px; margin:0 auto 12px;">DB</div>
+            <div style="font-size:13px; font-weight:700; color:var(--gold); letter-spacing:1px; text-transform:uppercase;">Don Bosco Training Center</div>
+            <div style="font-size:11px; color:rgba(255,255,255,0.6);">Mati City — Officers Election 2025</div>
+          </div>
+          <div class="qr-body">
+            <div id="qrcode" style="display:flex; justify-content:center; margin-bottom:20px;"></div>
+            <div id="studentInfo" class="student-info-box"></div>
+            <div id="votedBadge" style="display:none;" class="voted-badge">✅ Already Voted</div>
+            <p style="font-size:12px; color:var(--gray-text); text-align:center; margin-top:16px; line-height:1.5;">Present this QR code to the election officer at the voting booth. Do not share your QR code with others.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <h3>Don Bosco Training Center</h3>
+        <p>Mati City, Davao Oriental — Officers Election 2025.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="/index.html">Home</a></li>
+          <li><a href="/myqr.html">My QR Code</a></li>
+          <li><a href="/scan.html">Voting Booth</a></li>
+          <li><a href="/results.html">Results</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">&copy; 2025 Don Bosco Training Center — Officers Election, Mati City.</div>
+  </footer>
+
+  <script>
+    const toggle = document.getElementById('navToggle');
+    const links = document.getElementById('navLinks');
+    toggle.addEventListener('click', () => links.classList.toggle('open'));
+
+    let qrInstance = null;
+
+    async function generateQR() {
+      const studentNo = document.getElementById('studentNo').value.trim();
+      const errMsg = document.getElementById('errMsg');
+      errMsg.style.display = 'none';
+
+      if (!studentNo) {
+        errMsg.textContent = 'Please enter your student number.';
+        errMsg.style.display = 'block';
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/students/' + encodeURIComponent(studentNo));
+        if (res.status === 404) {
+          errMsg.textContent = 'Student number not found. Please check your student number or ask the admin.';
+          errMsg.style.display = 'block';
+          return;
+        }
+        if (!res.ok) throw new Error('Server error');
+        const student = await res.json();
+
+        document.getElementById('qrSection').style.display = 'block';
+        document.getElementById('studentInfo').innerHTML = `
+          <div class="info-row"><span>Name</span><strong>${student.name}</strong></div>
+          <div class="info-row"><span>Student No.</span><strong>${student.studentNo}</strong></div>
+          <div class="info-row"><span>Year & Section</span><strong>${student.yearLevel} — ${student.section}</strong></div>
+        `;
+
+        const votedBadge = document.getElementById('votedBadge');
+        votedBadge.style.display = student.hasVoted ? 'block' : 'none';
+
+        const qrDiv = document.getElementById('qrcode');
+        qrDiv.innerHTML = '';
+        qrInstance = new QRCode(qrDiv, {
+          text: student.studentNo,
+          width: 200,
+          height: 200,
+          colorDark: '#001f5a',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.H,
+        });
+
+        document.getElementById('qrSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (e) {
+        errMsg.textContent = 'Something went wrong. Please try again.';
+        errMsg.style.display = 'block';
+      }
+    }
+
+    document.getElementById('studentNo').addEventListener('keydown', e => {
+      if (e.key === 'Enter') generateQR();
+    });
+  </script>
+</body>
+</html>

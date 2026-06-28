@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voting Booth — Don Bosco TC Election 2025</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-inner">
+      <div class="nav-brand">
+        <div class="nav-logo">DB</div>
+        <div class="nav-title">
+          <span>Don Bosco TC</span>
+          <span>Mati City — Officers Election 2025</span>
+        </div>
+      </div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/index.html">Home</a></li>
+        <li><a href="/myqr.html">My QR Code</a></li>
+        <li><a href="/scan.html" class="active">Vote</a></li>
+        <li><a href="/results.html">Results</a></li>
+        <li><a href="/admin.html">Admin</a></li>
+      </ul>
+      <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <h1>🗳️ <span>Voting Booth</span></h1>
+    <p>Election Officer Station — Scan the student's QR code to open their ballot.</p>
+  </div>
+
+  <section class="section">
+    <div class="section-inner" style="max-width:600px;">
+
+      <!-- SCANNER PANEL -->
+      <div id="scanPanel">
+        <div class="scanner-card">
+          <div class="scanner-title">
+            <span>📷</span> Point camera at student's QR code
+          </div>
+          <div class="scanner-viewport">
+            <video id="video" autoplay playsinline muted></video>
+            <canvas id="canvas" style="display:none;"></canvas>
+            <div class="scanner-overlay">
+              <div class="scanner-corner tl"></div>
+              <div class="scanner-corner tr"></div>
+              <div class="scanner-corner bl"></div>
+              <div class="scanner-corner br"></div>
+              <div class="scanner-line"></div>
+            </div>
+          </div>
+          <div id="scanStatus" class="scan-status">Initializing camera…</div>
+          <div style="margin-top:16px; text-align:center;">
+            <span style="font-size:12px; color:var(--gray-text);">Or enter manually:</span>
+            <div style="display:flex; gap:8px; margin-top:8px;">
+              <input type="text" id="manualInput" placeholder="Student number…" style="flex:1; padding:9px 12px; border:1.5px solid var(--gray-mid); border-radius:8px; font-size:14px; outline:none;" />
+              <button class="btn btn-gold" style="padding:9px 18px; font-size:13px;" onclick="lookupStudent(document.getElementById('manualInput').value.trim())">Look Up</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BALLOT PANEL -->
+      <div id="ballotPanel" style="display:none;">
+        <div class="ballot-header">
+          <div class="ballot-header-info">
+            <div class="ballot-student-name" id="ballotStudentName"></div>
+            <div class="ballot-student-meta" id="ballotStudentMeta"></div>
+          </div>
+          <button class="btn btn-outline" style="font-size:13px; padding:8px 16px; color:var(--blue-dark); border-color:var(--blue-dark);" onclick="resetScanner()">← Back to Scanner</button>
+        </div>
+
+        <div id="ballotForm">
+          <div id="positions-list"></div>
+          <div style="margin-top:32px; padding:20px; background:var(--gray-light); border-radius:12px;">
+            <p style="font-size:13px; color:var(--gray-text); margin-bottom:16px;">
+              ⚠️ <strong>Review your choices before submitting.</strong> You can only vote once and this cannot be undone.
+            </p>
+            <button class="btn btn-gold" style="width:100%; font-size:16px; padding:14px;" id="submitBtn" onclick="submitVote()">Submit My Vote</button>
+          </div>
+        </div>
+
+        <div id="successPanel" style="display:none;" class="success-panel">
+          <div class="success-icon">✅</div>
+          <h2>Vote Recorded!</h2>
+          <p id="successName"></p>
+          <p style="color:var(--gray-text); font-size:14px; margin-bottom:24px;">Your vote has been securely recorded. Thank you for participating in the election!</p>
+          <button class="btn btn-gold" style="padding:12px 32px;" onclick="resetScanner()">Scan Next Student</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <h3>Don Bosco Training Center</h3>
+        <p>Mati City, Davao Oriental — Officers Election 2025.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="/index.html">Home</a></li>
+          <li><a href="/myqr.html">My QR Code</a></li>
+          <li><a href="/scan.html">Voting Booth</a></li>
+          <li><a href="/results.html">Results</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">&copy; 2025 Don Bosco Training Center — Officers Election, Mati City.</div>
+  </footer>
+
+  <script>
+    const toggle = document.getElementById('navToggle');
+    const links = document.getElementById('navLinks');
+    toggle.addEventListener('click', () => links.classList.toggle('open'));
+
+    let scanning = false;
+    let scanCooldown = false;
+    let currentStudent = null;
+    let candidates = [];
+    let stream = null;
+
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const scanStatus = document.getElementById('scanStatus');
+
+    async function startCamera() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        video.srcObject = stream;
+        video.onloadedmetadata = () => {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          scanning = true;
+          scanStatus.textContent = 'Ready — waiting for QR code…';
+          scanStatus.style.color = '#2e7d32';
+          tick();
+        };
+      } catch (e) {
+        scanStatus.textContent = 'Camera access denied. Use manual entry below.';
+        scanStatus.style.color = '#c53030';
+      }
+    }
+
+    function tick() {
+      if (!scanning) return;
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
+        if (code && !scanCooldown) {
+          scanCooldown = true;
+          lookupStudent(code.data);
+          setTimeout(() => { scanCooldown = false; }, 2000);
+        }
+      }
+      requestAnimationFrame(tick);
+    }
+
+    async function lookupStudent(studentNo) {
+      if (!studentNo) return;
+      scanStatus.textContent = 'Looking up: ' + studentNo + '…';
+      scanStatus.style.color = '#1a4db5';
+      try {
+        const res = await fetch('/api/students/' + encodeURIComponent(studentNo));
+        if (res.status === 404) {
+          scanStatus.textContent = '❌ Student not found: ' + studentNo;
+          scanStatus.style.color = '#c53030';
+          return;
+        }
+        if (!res.ok) throw new Error();
+        const student = await res.json();
+
+        if (student.hasVoted) {
+          scanStatus.textContent = '⚠️ ' + student.name + ' has already voted!';
+          scanStatus.style.color = '#e67e00';
+          return;
+        }
+
+        currentStudent = student;
+        await loadCandidates();
+        showBallot(student);
+      } catch (e) {
+        scanStatus.textContent = '❌ Error looking up student. Try again.';
+        scanStatus.style.color = '#c53030';
+      }
+    }
+
+    async function loadCandidates() {
+      const res = await fetch('/api/candidates');
+      candidates = await res.json();
+    }
+
+    function showBallot(student) {
+      scanning = false;
+      document.getElementById('scanPanel').style.display = 'none';
+      document.getElementById('ballotPanel').style.display = 'block';
+      document.getElementById('successPanel').style.display = 'none';
+      document.getElementById('ballotForm').style.display = 'block';
+      document.getElementById('ballotStudentName').textContent = student.name;
+      document.getElementById('ballotStudentMeta').textContent = student.studentNo + ' • ' + student.yearLevel + ' — ' + student.section;
+
+      const positions = {};
+      for (const c of candidates) {
+        if (!positions[c.position]) positions[c.position] = [];
+        positions[c.position].push(c);
+      }
+
+      const posOrder = ['President', 'Vice President', 'Secretary', 'Treasurer', 'Auditor', 'Public Relations Officer'];
+      const sortedPositions = Object.keys(positions).sort((a, b) => {
+        const ai = posOrder.indexOf(a), bi = posOrder.indexOf(b);
+        if (ai === -1 && bi === -1) return a.localeCompare(b);
+        if (ai === -1) return 1;
+        if (bi === -1) return -1;
+        return ai - bi;
+      });
+
+      let html = '';
+      for (const pos of sortedPositions) {
+        html += `<div class="ballot-position">
+          <div class="ballot-pos-title">${pos}</div>
+          <div class="ballot-candidates">`;
+        for (const c of positions[pos]) {
+          html += `<label class="candidate-option">
+            <input type="radio" name="pos_${pos.replace(/\s+/g,'_')}" value="${c.id}" data-position="${pos}" />
+            <div class="candidate-option-inner">
+              <div class="candidate-avatar">${c.name.charAt(0)}</div>
+              <div class="candidate-details">
+                <div class="candidate-name">${c.name}</div>
+                <div class="candidate-meta">${c.yearLevel} — ${c.section}</div>
+                ${c.motto ? `<div class="candidate-motto">"${c.motto}"</div>` : ''}
+              </div>
+              <div class="candidate-check">✓</div>
+            </div>
+          </label>`;
+        }
+        html += `</div></div>`;
+      }
+
+      if (sortedPositions.length === 0) {
+        html = '<div class="loading-msg" style="padding:32px;">No candidates found. Please add candidates in Admin.</div>';
+      }
+
+      document.getElementById('positions-list').innerHTML = html;
+    }
+
+    async function submitVote() {
+      const radios = document.querySelectorAll('#positions-list input[type=radio]:checked');
+      const votes = [];
+      for (const r of radios) {
+        votes.push({ candidateId: parseInt(r.value), position: r.dataset.position });
+      }
+
+      const positions = [...new Set(candidates.map(c => c.position))];
+      if (votes.length < positions.length) {
+        alert('Please select one candidate for each position before submitting.');
+        return;
+      }
+
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = 'Submitting…';
+
+      try {
+        const res = await fetch('/api/votes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ studentNo: currentStudent.studentNo, votes }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          alert(data.error || 'Failed to submit vote. Please try again.');
+          btn.disabled = false;
+          btn.textContent = 'Submit My Vote';
+          return;
+        }
+        document.getElementById('ballotForm').style.display = 'none';
+        document.getElementById('successPanel').style.display = 'block';
+        document.getElementById('successName').textContent = currentStudent.name + ' — ' + currentStudent.studentNo;
+      } catch (e) {
+        alert('Network error. Please try again.');
+        btn.disabled = false;
+        btn.textContent = 'Submit My Vote';
+      }
+    }
+
+    function resetScanner() {
+      currentStudent = null;
+      document.getElementById('scanPanel').style.display = 'block';
+      document.getElementById('ballotPanel').style.display = 'none';
+      document.getElementById('manualInput').value = '';
+      scanStatus.textContent = 'Ready — waiting for QR code…';
+      scanStatus.style.color = '#2e7d32';
+      scanning = true;
+      tick();
+    }
+
+    startCamera();
+  </script>
+</body>
+</html>
