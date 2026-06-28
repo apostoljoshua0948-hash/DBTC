@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Announcements — Don Bosco Training Center Mati City</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-inner">
+      <div class="nav-brand">
+        <div class="nav-logo">DB</div>
+        <div class="nav-title">
+          <span>Don Bosco TC</span>
+          <span>Mati City, Davao Oriental</span>
+        </div>
+      </div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/index.html">Home</a></li>
+        <li><a href="/officers.html">Officers</a></li>
+        <li><a href="/announcements.html" class="active">Announcements</a></li>
+        <li><a href="/events.html">Events</a></li>
+        <li><a href="/contact.html">Contact</a></li>
+      </ul>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <h1>Student Council <span>Announcements</span></h1>
+    <p>Official notices, reminders, and updates from the Supreme Student Council of Don Bosco Training Center.</p>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div style="background: #fff; border-bottom: 1px solid #e0e6f0; padding: 16px 24px;">
+    <div style="max-width:1100px; margin: 0 auto; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+      <span style="font-size:13px; font-weight:600; color:#003087; margin-right:8px;">Filter:</span>
+      <button onclick="filterAnn('all')" class="filter-btn active" id="btn-all">All</button>
+      <button onclick="filterAnn('urgent')" class="filter-btn" id="btn-urgent">Urgent</button>
+      <button onclick="filterAnn('event')" class="filter-btn" id="btn-event">Events</button>
+      <button onclick="filterAnn('general')" class="filter-btn" id="btn-general">General</button>
+    </div>
+  </div>
+
+  <style>
+    .filter-btn {
+      padding: 6px 18px;
+      border-radius: 20px;
+      border: 1.5px solid #e0e6f0;
+      background: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      color: #555e7a;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-btn:hover, .filter-btn.active {
+      background: #003087;
+      border-color: #003087;
+      color: #fff;
+    }
+  </style>
+
+  <!-- ANNOUNCEMENTS -->
+  <section class="section">
+    <div class="section-inner">
+      <div class="ann-list" id="annList">
+
+        <div class="ann-item urgent" data-type="urgent">
+          <div class="ann-date"><div class="day">28</div><div class="month">Jun</div></div>
+          <div class="ann-content">
+            <h3>General Assembly — All Officers Required</h3>
+            <p>All student officers are required to attend the General Assembly this Friday, June 28, 2025 at 3:00 PM in the School Auditorium. Failure to attend without valid excuse will be noted in the officer records. Please inform your committee members.</p>
+            <span class="ann-tag tag-urgent">Urgent</span>
+          </div>
+        </div>
+
+        <div class="ann-item event" data-type="event">
+          <div class="ann-date"><div class="day">15</div><div class="month">Jul</div></div>
+          <div class="ann-content">
+            <h3>Don Bosco Foundation Day — Committee Proposals Due</h3>
+            <p>All committee chairpersons must submit their activity proposals for the Foundation Day celebration no later than July 10, 2025. Submit to the Office of Student Affairs or email the Secretary. Late submissions will not be considered.</p>
+            <span class="ann-tag tag-event">Event</span>
+          </div>
+        </div>
+
+        <div class="ann-item" data-type="general">
+          <div class="ann-date"><div class="day">02</div><div class="month">Jul</div></div>
+          <div class="ann-content">
+            <h3>Scholarship Application — 2nd Semester</h3>
+            <p>The Student Council is facilitating scholarship applications for the 2nd semester. Interested students should see the Secretary for the complete list of requirements and application forms. Deadline for submission is July 20, 2025.</p>
+            <span class="ann-tag tag-general">General</span>
+          </div>
+        </div>
+
+        <div class="ann-item event" data-type="event">
+          <div class="ann-date"><div class="day">05</div><div class="month">Jul</div></div>
+          <div class="ann-content">
+            <h3>Intramurals 2025 — Registration Open</h3>
+            <p>Student athletes interested in joining the Intramurals 2025 may now register through their respective class representatives. Events include basketball, volleyball, badminton, chess, and track and field. Registration closes July 15, 2025.</p>
+            <span class="ann-tag tag-event">Event</span>
+          </div>
+        </div>
+
+        <div class="ann-item urgent" data-type="urgent">
+          <div class="ann-date"><div class="day">25</div><div class="month">Jun</div></div>
+          <div class="ann-content">
+            <h3>Student ID Processing — Final Deadline</h3>
+            <p>Students who have not yet processed their school ID must do so on or before June 30, 2025. The Treasurer's office will stop accepting payments after this date. No ID, no entry policy will be strictly enforced starting July 7, 2025.</p>
+            <span class="ann-tag tag-urgent">Urgent</span>
+          </div>
+        </div>
+
+        <div class="ann-item" data-type="general">
+          <div class="ann-date"><div class="day">20</div><div class="month">Jun</div></div>
+          <div class="ann-content">
+            <h3>Salesian Youth Day Reflection Activity</h3>
+            <p>The Committee on Spirituality invites all students to join the Salesian Youth Day reflection activity on June 24 at the school chapel. The activity includes a short Mass, sharing, and a fellowship meal. Open to all students and faculty.</p>
+            <span class="ann-tag tag-general">General</span>
+          </div>
+        </div>
+
+        <div class="ann-item" data-type="general">
+          <div class="ann-date"><div class="day">10</div><div class="month">Jun</div></div>
+          <div class="ann-content">
+            <h3>Campus Clean-Up Drive — All Sections Participate</h3>
+            <p>The Committee on Environment announces a campus-wide clean-up drive on June 14, 2025 from 7:00 AM to 10:00 AM. All sections are expected to participate. Section advisers, please coordinate with your class officers.</p>
+            <span class="ann-tag tag-general">General</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <h3>Don Bosco Training Center</h3>
+        <p>Mati City, Davao Oriental — Student Officers Portal. Serving with the spirit of Don Bosco.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="/index.html">Home</a></li>
+          <li><a href="/officers.html">Officers</a></li>
+          <li><a href="/announcements.html">Announcements</a></li>
+          <li><a href="/events.html">Events</a></li>
+          <li><a href="/contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="#">Mati City, Davao Oriental</a></li>
+          <li><a href="#">studentcouncil@donboscomati.edu.ph</a></li>
+          <li><a href="#">(087) 388-0000</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      &copy; 2025 Don Bosco Training Center — Student Officers, Mati City. All rights reserved.
+    </div>
+  </footer>
+
+  <script>
+    const toggle = document.getElementById('navToggle');
+    const links = document.getElementById('navLinks');
+    toggle.addEventListener('click', () => links.classList.toggle('open'));
+
+    function filterAnn(type) {
+      const items = document.querySelectorAll('.ann-item');
+      items.forEach(item => {
+        if (type === 'all' || item.dataset.type === type) {
+          item.style.display = 'flex';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('btn-' + type).classList.add('active');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact — Don Bosco Training Center Mati City</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-inner">
+      <div class="nav-brand">
+        <div class="nav-logo">DB</div>
+        <div class="nav-title">
+          <span>Don Bosco TC</span>
+          <span>Mati City, Davao Oriental</span>
+        </div>
+      </div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/index.html">Home</a></li>
+        <li><a href="/officers.html">Officers</a></li>
+        <li><a href="/announcements.html">Announcements</a></li>
+        <li><a href="/events.html">Events</a></li>
+        <li><a href="/contact.html" class="active">Contact</a></li>
+      </ul>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <h1>Get in <span>Touch</span></h1>
+    <p>Reach out to the Student Council of Don Bosco Training Center, Mati City for concerns, suggestions, and inquiries.</p>
+  </div>
+
+  <!-- CONTACT SECTION -->
+  <section class="section">
+    <div class="section-inner">
+      <div class="contact-grid">
+
+        <!-- CONTACT INFO -->
+        <div>
+          <div class="section-label">Contact Information</div>
+          <h2 class="section-title">We're Here to Help</h2>
+          <p style="color:#555e7a; font-size:15px; line-height:1.7; margin-bottom:36px;">Have a concern, suggestion, or want to get involved? Reach out to us through any of the channels below. The Student Council is committed to serving every Bosconian.</p>
+
+          <div class="contact-info">
+
+            <div class="contact-info-item">
+              <div class="contact-icon">📍</div>
+              <div class="contact-info-text">
+                <h4>Address</h4>
+                <p>Don Bosco Training Center<br>Mati City, Davao Oriental<br>Philippines</p>
+              </div>
+            </div>
+
+            <div class="contact-info-item">
+              <div class="contact-icon">📧</div>
+              <div class="contact-info-text">
+                <h4>Email</h4>
+                <p>studentcouncil@donboscomati.edu.ph<br>
+                <small style="color:#888;">Response within 1–2 school days</small></p>
+              </div>
+            </div>
+
+            <div class="contact-info-item">
+              <div class="contact-icon">📞</div>
+              <div class="contact-info-text">
+                <h4>Phone</h4>
+                <p>(087) 388-0000<br>
+                <small style="color:#888;">Monday – Friday, 8:00 AM – 5:00 PM</small></p>
+              </div>
+            </div>
+
+            <div class="contact-info-item">
+              <div class="contact-icon">📘</div>
+              <div class="contact-info-text">
+                <h4>Facebook Page</h4>
+                <p>Don Bosco TC – Student Council<br>
+                <small style="color:#888;">Official page for updates and announcements</small></p>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- OFFICE HOURS -->
+          <div style="margin-top:36px; background:#f4f6fb; border-radius:12px; padding:24px;">
+            <h4 style="font-size:14px; font-weight:700; color:#003087; margin-bottom:14px;">Student Council Office Hours</h4>
+            <table style="width:100%; font-size:13px; color:#555e7a; border-collapse:collapse;">
+              <tr style="border-bottom:1px solid #e0e6f0;">
+                <td style="padding:8px 0; font-weight:600; color:#0d1733;">Monday – Friday</td>
+                <td style="padding:8px 0; text-align:right;">7:30 AM – 5:00 PM</td>
+              </tr>
+              <tr style="border-bottom:1px solid #e0e6f0;">
+                <td style="padding:8px 0; font-weight:600; color:#0d1733;">Saturday</td>
+                <td style="padding:8px 0; text-align:right;">8:00 AM – 12:00 PM</td>
+              </tr>
+              <tr>
+                <td style="padding:8px 0; font-weight:600; color:#0d1733;">Sunday & Holidays</td>
+                <td style="padding:8px 0; text-align:right;">Closed</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- CONTACT FORM -->
+        <div class="contact-form">
+          <h3>Send Us a Message</h3>
+          <form id="contactForm" onsubmit="handleSubmit(event)">
+            <div class="form-group">
+              <label for="name">Full Name</label>
+              <input type="text" id="name" placeholder="e.g. Juan dela Cruz" required />
+            </div>
+            <div class="form-group">
+              <label for="section">Grade & Section</label>
+              <input type="text" id="section" placeholder="e.g. Grade 11 — STEM A" />
+            </div>
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" placeholder="your.email@example.com" required />
+            </div>
+            <div class="form-group">
+              <label for="category">Category</label>
+              <select id="category">
+                <option value="">Select a category</option>
+                <option value="concern">Student Concern</option>
+                <option value="suggestion">Suggestion / Feedback</option>
+                <option value="event">Event Inquiry</option>
+                <option value="scholarship">Scholarship</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="message">Message</label>
+              <textarea id="message" placeholder="Write your message here..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-gold" style="width:100%; font-size:15px; padding:14px;">Send Message</button>
+          </form>
+          <div id="successMsg" style="display:none; margin-top:20px; background:#e8f5e9; border:1px solid #a5d6a7; border-radius:8px; padding:16px; color:#2e7d32; font-size:14px; font-weight:600; text-align:center;">
+            Message sent! The Student Council will get back to you within 1–2 school days.
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <h3>Don Bosco Training Center</h3>
+        <p>Mati City, Davao Oriental — Student Officers Portal. Serving with the spirit of Don Bosco.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="/index.html">Home</a></li>
+          <li><a href="/officers.html">Officers</a></li>
+          <li><a href="/announcements.html">Announcements</a></li>
+          <li><a href="/events.html">Events</a></li>
+          <li><a href="/contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="#">Mati City, Davao Oriental</a></li>
+          <li><a href="#">studentcouncil@donboscomati.edu.ph</a></li>
+          <li><a href="#">(087) 388-0000</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      &copy; 2025 Don Bosco Training Center — Student Officers, Mati City. All rights reserved.
+    </div>
+  </footer>
+
+  <script>
+    const toggle = document.getElementById('navToggle');
+    const links = document.getElementById('navLinks');
+    toggle.addEventListener('click', () => links.classList.toggle('open'));
+
+    function handleSubmit(e) {
+      e.preventDefault();
+      document.getElementById('contactForm').style.display = 'none';
+      document.getElementById('successMsg').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
