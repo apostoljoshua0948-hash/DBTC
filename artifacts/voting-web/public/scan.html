@@ -30,7 +30,10 @@
   </nav>
 
   <div class="page-header">
-    <h1>🗳️ <span>Voting Booth</span></h1>
+    <h1>
+      <svg class="icon icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><polyline points="9 11 12 14 22 4"/><line x1="9" y1="21" x2="23" y2="21"/><line x1="16" y1="15" x2="23" y2="15"/></svg>
+      <span>Voting Booth</span>
+    </h1>
     <p>Election Officer Station — Scan the student's QR code to open their ballot.</p>
   </div>
 
@@ -39,7 +42,10 @@
 
       <div id="scanPanel">
         <div class="scanner-card">
-          <div class="scanner-title"><span>📷</span> Point camera at student's QR code</div>
+          <div class="scanner-title">
+            <svg class="icon icon-md" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            Point camera at student's QR code
+          </div>
           <div class="scanner-viewport">
             <video id="video" autoplay playsinline muted></video>
             <canvas id="canvas" style="display:none;"></canvas>
@@ -66,17 +72,25 @@
             <div class="ballot-student-name" id="ballotStudentName"></div>
             <div class="ballot-student-meta" id="ballotStudentMeta"></div>
           </div>
-          <button class="btn btn-outline" style="font-size:13px;padding:8px 16px;color:var(--white);border-color:rgba(255,255,255,.4);" onclick="resetScanner()">← Back</button>
+          <button class="btn btn-outline" style="font-size:13px;padding:8px 16px;color:var(--white);border-color:rgba(255,255,255,.4);" onclick="resetScanner()">
+            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Back
+          </button>
         </div>
         <div id="ballotForm">
           <div id="positions-list"></div>
           <div style="margin-top:32px;padding:20px;background:var(--gray-light);border-radius:12px;">
-            <p style="font-size:13px;color:var(--gray-text);margin-bottom:16px;">⚠️ <strong>Review your choices before submitting.</strong> You can only vote once.</p>
+            <p style="font-size:13px;color:var(--gray-text);margin-bottom:16px;display:flex;align-items:center;gap:6px;">
+              <svg class="icon icon-sm" style="color:#e67e00;flex-shrink:0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <strong>Review your choices before submitting.</strong> You can only vote once.
+            </p>
             <button class="btn btn-gold" style="width:100%;font-size:16px;padding:14px;" id="submitBtn" onclick="submitVote()">Submit My Vote</button>
           </div>
         </div>
         <div id="successPanel" style="display:none;" class="success-panel">
-          <div class="success-icon">✅</div>
+          <div class="success-icon">
+            <svg class="icon icon-2xl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--green);"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
           <h2>Vote Recorded!</h2>
           <p id="successName"></p>
           <p style="color:var(--gray-text);font-size:14px;margin-bottom:24px;">Your vote has been securely recorded. Thank you for participating!</p>
@@ -100,6 +114,10 @@
     const links = document.getElementById('navLinks');
     toggle.addEventListener('click', () => links.classList.toggle('open'));
 
+    const ICON_CHECK_SM = `<svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 13 4 16"/></svg>`;
+    const ICON_X_CIRCLE = `<svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
+    const ICON_WARN = `<svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+
     let scanning = false, scanCooldown = false, currentStudent = null, candidates = [], stream = null;
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
@@ -113,10 +131,10 @@
         video.onloadedmetadata = () => {
           canvas.width = video.videoWidth; canvas.height = video.videoHeight;
           scanning = true;
-          scanStatus.textContent = 'Ready — waiting for QR code…'; scanStatus.style.color = '#2e7d32';
+          scanStatus.innerHTML = 'Ready — waiting for QR code…'; scanStatus.style.color = '#2e7d32';
           tick();
         };
-      } catch (e) { scanStatus.textContent = 'Camera access denied. Use manual entry below.'; scanStatus.style.color = '#c53030'; }
+      } catch (e) { scanStatus.innerHTML = 'Camera access denied. Use manual entry below.'; scanStatus.style.color = '#c53030'; }
     }
 
     function tick() {
@@ -132,17 +150,17 @@
 
     async function lookupStudent(studentNo) {
       if (!studentNo) return;
-      scanStatus.textContent = 'Looking up: ' + studentNo + '…'; scanStatus.style.color = '#1a4db5';
+      scanStatus.innerHTML = 'Looking up: ' + studentNo + '…'; scanStatus.style.color = '#1a4db5';
       try {
         const res = await fetch('/api/students/' + encodeURIComponent(studentNo));
-        if (res.status === 404) { scanStatus.textContent = '❌ Student not found: ' + studentNo; scanStatus.style.color = '#c53030'; return; }
+        if (res.status === 404) { scanStatus.innerHTML = ICON_X_CIRCLE + ' Student not found: ' + studentNo; scanStatus.style.color = '#c53030'; return; }
         if (!res.ok) throw new Error();
         const student = await res.json();
-        if (student.hasVoted) { scanStatus.textContent = '⚠️ ' + student.name + ' has already voted!'; scanStatus.style.color = '#e67e00'; return; }
+        if (student.hasVoted) { scanStatus.innerHTML = ICON_WARN + ' ' + student.name + ' has already voted!'; scanStatus.style.color = '#e67e00'; return; }
         currentStudent = student;
         await loadCandidates();
         showBallot(student);
-      } catch (e) { scanStatus.textContent = '❌ Error looking up student. Try again.'; scanStatus.style.color = '#c53030'; }
+      } catch (e) { scanStatus.innerHTML = ICON_X_CIRCLE + ' Error looking up student. Try again.'; scanStatus.style.color = '#c53030'; }
     }
 
     async function loadCandidates() {
@@ -173,7 +191,7 @@
       for (const pos of sorted) {
         html += `<div class="ballot-position"><div class="ballot-pos-title">${pos}</div><div class="ballot-candidates">`;
         for (const c of positions[pos]) {
-          html += `<label class="candidate-option"><input type="radio" name="pos_${pos.replace(/\s+/g,'_')}" value="${c.id}" data-position="${pos}" /><div class="candidate-option-inner">${candidateAvatar(c)}<div class="candidate-details"><div class="candidate-name">${c.name}</div><div class="candidate-meta">${c.yearLevel} — ${c.section}</div>${c.motto ? `<div class="candidate-motto">"${c.motto}"</div>` : ''}</div><div class="candidate-check">✓</div></div></label>`;
+          html += `<label class="candidate-option"><input type="radio" name="pos_${pos.replace(/\s+/g,'_')}" value="${c.id}" data-position="${pos}" /><div class="candidate-option-inner">${candidateAvatar(c)}<div class="candidate-details"><div class="candidate-name">${c.name}</div><div class="candidate-meta">${c.yearLevel} — ${c.section}</div>${c.motto ? `<div class="candidate-motto">"${c.motto}"</div>` : ''}</div><div class="candidate-check">${ICON_CHECK_SM}</div></div></label>`;
         }
         html += '</div></div>';
       }
@@ -203,7 +221,7 @@
       document.getElementById('scanPanel').style.display = 'block';
       document.getElementById('ballotPanel').style.display = 'none';
       document.getElementById('manualInput').value = '';
-      scanStatus.textContent = 'Ready — waiting for QR code…'; scanStatus.style.color = '#2e7d32';
+      scanStatus.innerHTML = 'Ready — waiting for QR code…'; scanStatus.style.color = '#2e7d32';
       scanning = true; tick();
     }
 

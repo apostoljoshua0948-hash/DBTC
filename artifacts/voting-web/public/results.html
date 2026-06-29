@@ -39,7 +39,12 @@
         <div class="rsb-item"><span id="rVoted">—</span><label>Votes Cast</label></div>
         <div class="rsb-item"><span id="rTotal">—</span><label>Registered</label></div>
         <div class="rsb-item"><span id="rPct">—</span><label>Turnout</label></div>
-        <div class="rsb-refresh"><button class="btn btn-gold" style="padding:8px 20px;font-size:13px;" onclick="loadResults()">↻ Refresh</button></div>
+        <div class="rsb-refresh">
+          <button class="btn btn-gold" style="padding:8px 20px;font-size:13px;" onclick="loadResults()">
+            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            Refresh
+          </button>
+        </div>
       </div>
       <div id="resultsContainer"><div class="loading-msg" style="padding:60px;text-align:center;">Loading results…</div></div>
     </div>
@@ -58,13 +63,9 @@
     const links = document.getElementById('navLinks');
     toggle.addEventListener('click', () => links.classList.toggle('open'));
 
-    const posOrder = ['President','Vice President','Secretary','Treasurer','Auditor','Public Relations Officer'];
+    const ICON_STAR = `<svg class="icon icon-sm" viewBox="0 0 24 24" fill="var(--gold-dark)" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
 
-    function candidateAvatar(c, size) {
-      const s = size || 40;
-      if (c.photoData) return `<img src="${c.photoData}" style="width:${s}px;height:${s}px;border-radius:50%;object-fit:cover;flex-shrink:0;" alt="${c.candidateName}" />`;
-      return `<div style="width:${s}px;height:${s}px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:${Math.round(s*0.4)}px;flex-shrink:0;">${(c.candidateName||'?').charAt(0)}</div>`;
-    }
+    const posOrder = ['President','Vice President','Secretary','Treasurer','Auditor','Public Relations Officer'];
 
     async function loadResults() {
       try {
@@ -102,7 +103,7 @@
               <div class="result-rank">${i + 1}</div>
               ${avatar}
               <div class="result-cand-info">
-                <div class="result-cand-name">${isLeader ? '🏆 ' : ''}${c.candidateName}</div>
+                <div class="result-cand-name">${isLeader ? ICON_STAR : ''}${c.candidateName}</div>
                 <div class="result-bar-wrap"><div class="result-bar" style="width:${maxVotes > 0 ? Math.round((c.voteCount/maxVotes)*100) : 0}%"></div></div>
               </div>
               <div class="result-cand-count"><strong>${c.voteCount}</strong><span>${pctC}%</span></div>
