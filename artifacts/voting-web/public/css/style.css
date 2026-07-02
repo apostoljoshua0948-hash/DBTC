@@ -31,9 +31,10 @@ a { text-decoration: none; color: inherit; }
 
 /* ── NAVBAR ── */
 .navbar { background: var(--blue-dark); position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,.25); }
-.nav-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 64px; }
+.nav-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 68px; }
 .nav-brand { display: flex; align-items: center; gap: 12px; }
 .nav-logo { width: 44px; height: 44px; background: var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px; color: var(--blue-dark); flex-shrink: 0; }
+.nav-logo-img { width: 48px; height: 48px; border-radius: 50%; object-fit: contain; flex-shrink: 0; background: #fff; padding: 2px; border: 2px solid rgba(245,184,0,.4); }
 .nav-title { display: flex; flex-direction: column; }
 .nav-title span:first-child { font-size: 13px; font-weight: 700; color: var(--gold); letter-spacing: .5px; text-transform: uppercase; }
 .nav-title span:last-child { font-size: 11px; color: rgba(255,255,255,.6); }
@@ -44,8 +45,11 @@ a { text-decoration: none; color: inherit; }
 .nav-toggle span { display: block; width: 24px; height: 2px; background: var(--white); border-radius: 2px; }
 
 /* ── HERO ── */
-.hero { background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue) 60%, var(--blue-light) 100%); color: var(--white); padding: 80px 24px 90px; text-align: center; position: relative; overflow: hidden; }
-.hero::before { content: ''; position: absolute; top: -80px; right: -80px; width: 320px; height: 320px; border-radius: 50%; background: rgba(245,184,0,.08); }
+.hero { background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue) 60%, var(--blue-light) 100%); color: var(--white); padding: 64px 24px 80px; text-align: center; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; top: -80px; right: -80px; width: 360px; height: 360px; border-radius: 50%; background: rgba(245,184,0,.07); pointer-events: none; }
+.hero::after { content: ''; position: absolute; bottom: -60px; left: -60px; width: 240px; height: 240px; border-radius: 50%; background: rgba(245,184,0,.05); pointer-events: none; }
+.hero-logo-wrap { display: flex; justify-content: center; margin-bottom: 28px; }
+.hero-logo { width: 130px; height: 130px; border-radius: 50%; object-fit: contain; background: rgba(255,255,255,.12); padding: 8px; border: 3px solid rgba(245,184,0,.5); filter: drop-shadow(0 6px 24px rgba(0,0,0,.35)); }
 .hero-badge { display: inline-block; background: var(--gold); color: var(--blue-dark); font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 5px 16px; border-radius: 20px; margin-bottom: 20px; }
 .hero h1 { font-size: clamp(28px,5vw,52px); font-weight: 800; line-height: 1.15; margin-bottom: 12px; }
 .hero h1 span { color: var(--gold); }
@@ -239,6 +243,7 @@ footer { background: var(--blue-dark); color: rgba(255,255,255,.7); margin-top: 
 .auth-logo { text-align: center; margin-bottom: 28px; }
 .auth-logo h2 { font-size: 22px; font-weight: 800; color: var(--blue-dark); margin-bottom: 4px; }
 .auth-logo p { font-size: 13px; color: var(--gray-text); }
+.auth-logo-img { width: 88px; height: 88px; border-radius: 50%; object-fit: contain; display: block; margin: 0 auto 14px; background: #fff; border: 3px solid var(--gray-mid); padding: 4px; }
 .auth-alt { text-align: center; margin-top: 20px; font-size: 13px; color: var(--gray-text); }
 .auth-alt a { color: var(--blue); font-weight: 600; }
 .pw-wrap { position: relative; }
