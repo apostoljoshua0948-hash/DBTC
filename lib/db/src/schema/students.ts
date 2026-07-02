@@ -8,6 +8,7 @@ export const studentsTable = pgTable("students", {
   name: text("name").notNull(),
   yearLevel: text("year_level").notNull(),
   section: text("section").notNull(),
+  photoData: text("photo_data"),
   hasVoted: boolean("has_voted").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

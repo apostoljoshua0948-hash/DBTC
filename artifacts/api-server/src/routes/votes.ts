@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { db, studentsTable, candidatesTable, votesTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
+import { requireAdmin } from "../middleware/auth";
 
 const router = Router();
 
@@ -33,6 +34,25 @@ router.post("/votes", async (req, res) => {
     req.log.error(err);
     const msg = err instanceof Error ? err.message : "Failed to record vote";
     res.status(500).json({ error: msg });
+  }
+});
+
+router.delete("/votes/:studentNo", requireAdmin, async (req, res) => {
+  try {
+    const studentNo = String(req.params.studentNo);
+    const [student] = await db.select().from(studentsTable).where(eq(studentsTable.studentNo, studentNo));
+    if (!student) {
+      res.status(404).json({ error: "Student not found" });
+      return;
+    }
+    await db.transaction(async (tx) => {
+      await tx.delete(votesTable).where(eq(votesTable.studentId, student.id));
+      await tx.update(studentsTable).set({ hasVoted: false }).where(eq(studentsTable.id, student.id));
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    req.log.error(err);
+    res.status(500).json({ error: "Failed to reset vote" });
   }
 });
 

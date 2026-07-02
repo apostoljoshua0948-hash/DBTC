@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, studentsTable, insertStudentSchema } from "@workspace/db";
+import { db, studentsTable, votesTable, insertStudentSchema } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { requireAdmin } from "../middleware/auth";
 
@@ -54,7 +54,19 @@ router.post("/students", requireAdmin, async (req, res) => {
 
 router.delete("/students/:studentNo", requireAdmin, async (req, res) => {
   try {
-    await db.delete(studentsTable).where(eq(studentsTable.studentNo, String(req.params.studentNo)));
+    const studentNo = String(req.params.studentNo);
+    const [student] = await db
+      .select()
+      .from(studentsTable)
+      .where(eq(studentsTable.studentNo, studentNo));
+    if (!student) {
+      res.json({ ok: true });
+      return;
+    }
+    await db.transaction(async (tx) => {
+      await tx.delete(votesTable).where(eq(votesTable.studentId, student.id));
+      await tx.delete(studentsTable).where(eq(studentsTable.id, student.id));
+    });
     res.json({ ok: true });
   } catch (err) {
     req.log.error(err);

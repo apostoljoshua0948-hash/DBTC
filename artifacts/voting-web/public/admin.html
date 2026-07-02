@@ -5,8 +5,43 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin — Don Bosco TC Election 2025</title>
   <link rel="stylesheet" href="/css/style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:500; display:flex; align-items:center; justify-content:center; padding:16px; }
+    .modal-box { background:#fff; border-radius:20px; padding:32px 28px; max-width:380px; width:100%; box-shadow:0 8px 40px rgba(0,0,0,.25); text-align:center; position:relative; }
+    .modal-close { position:absolute; top:14px; right:14px; background:none; border:none; cursor:pointer; color:var(--gray-text); padding:4px; display:flex; align-items:center; justify-content:center; }
+    .modal-close:hover { color:var(--blue-dark); }
+    .modal-qr-header { background:linear-gradient(135deg,var(--blue-dark),var(--blue)); border-radius:12px; padding:20px 16px 14px; margin-bottom:20px; }
+    .modal-qr-body { display:flex; justify-content:center; margin:4px 0 16px; }
+    .modal-student-name { font-size:16px; font-weight:800; color:var(--blue-dark); margin-bottom:4px; }
+    .modal-student-meta { font-size:12px; color:var(--gray-text); }
+    .btn-qr { background:var(--gray-light); border:1.5px solid var(--gray-mid); color:var(--blue-dark); font-size:12px; font-weight:700; padding:4px 10px; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; font-family:inherit; transition:background .2s; }
+    .btn-qr:hover { background:var(--gray-mid); }
+    .btn-reset { background:none; border:1.5px solid #e67e00; color:#e67e00; font-size:12px; font-weight:700; padding:4px 10px; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; font-family:inherit; transition:background .2s, color .2s; }
+    .btn-reset:hover { background:#fff3cd; }
+    .student-photo-thumb { width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid var(--gray-mid); }
+    .student-avatar-thumb { width:36px; height:36px; border-radius:50%; background:var(--blue); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:14px; }
+    .action-cell { display:flex; align-items:center; gap:6px; flex-wrap:nowrap; }
+  </style>
 </head>
 <body>
+
+  <!-- QR Modal -->
+  <div id="qrModal" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeQrModal()">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeQrModal()">
+        <svg class="icon icon-md" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div class="modal-qr-header">
+        <div class="nav-logo" style="width:48px;height:48px;font-size:18px;margin:0 auto 10px;">DB</div>
+        <div style="font-size:11px;font-weight:700;color:var(--gold);letter-spacing:1px;text-transform:uppercase;">Don Bosco Training Center</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.6);margin-top:2px;">Mati City — Officers Election 2025</div>
+      </div>
+      <div class="modal-qr-body"><div id="modalQrCode"></div></div>
+      <div class="modal-student-name" id="modalStudentName"></div>
+      <div class="modal-student-meta" id="modalStudentMeta"></div>
+    </div>
+  </div>
 
   <nav class="navbar">
     <div class="nav-inner">
@@ -79,6 +114,22 @@
               <div class="form-group"><label>Full Name</label><input type="text" id="s-name" placeholder="e.g. Juan dela Cruz" /></div>
               <div class="form-group"><label>Year Level</label><select id="s-year"><option value="">Select year level</option><option>Grade 11</option><option>Grade 12</option></select></div>
               <div class="form-group"><label>Section</label><input type="text" id="s-section" placeholder="e.g. STEM A" /></div>
+              <div class="form-group" style="grid-column:1/-1;">
+                <label>Student Photo <span style="font-weight:400;color:#888;">(optional)</span></label>
+                <div class="photo-upload-area" id="sPhotoUploadArea" onclick="document.getElementById('s-photo').click()">
+                  <div id="sPhotoPreview" class="photo-preview-empty">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    <span>Click to upload photo</span>
+                    <span style="font-size:12px;color:#aaa;">JPG, PNG, WEBP — max 5 MB</span>
+                  </div>
+                  <img id="sPhotoPreviewImg" src="" alt="" style="display:none;width:100px;height:100px;object-fit:cover;border-radius:50%;" />
+                </div>
+                <input type="file" id="s-photo" accept="image/*" style="display:none;" onchange="handleStudentPhoto(this)" />
+                <button type="button" id="sRemovePhotoBtn" style="display:none;margin-top:8px;background:none;border:none;color:var(--red);cursor:pointer;font-size:13px;align-items:center;gap:4px;" onclick="removeStudentPhoto()">
+                  <svg class="icon icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  Remove photo
+                </button>
+              </div>
             </div>
             <div id="s-err" class="error-msg" style="display:none;"></div>
             <button class="btn btn-gold" onclick="addStudent()">+ Add Student</button>
@@ -126,7 +177,7 @@
                   <img id="photoPreviewImg" src="" alt="" style="display:none;width:120px;height:120px;object-fit:cover;border-radius:50%;" />
                 </div>
                 <input type="file" id="c-photo" accept="image/*" style="display:none;" onchange="handlePhoto(this)" />
-                <button type="button" id="removePhotoBtn" style="display:none;margin-top:8px;background:none;border:none;color:var(--red);cursor:pointer;font-size:13px;display:none;align-items:center;gap:4px;" onclick="removePhoto()">
+                <button type="button" id="removePhotoBtn" style="display:none;margin-top:8px;background:none;border:none;color:var(--red);cursor:pointer;font-size:13px;align-items:center;gap:4px;" onclick="removePhoto()">
                   <svg class="icon icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                   Remove photo
                 </button>
@@ -175,28 +226,40 @@
 
     const ICON_X = `<svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
     const ICON_CHECK = `<svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 13 4 16"/></svg>`;
+    const ICON_QR = `<svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="5" y="5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="16" y="5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="5" y="16" width="3" height="3" fill="currentColor" stroke="none"/><line x1="14" y1="14" x2="14" y2="14"/><line x1="17" y1="14" x2="21" y2="14"/><line x1="14" y1="17" x2="14" y2="21"/><line x1="17" y1="17" x2="21" y2="17"/><line x1="21" y1="14" x2="21" y2="17"/></svg>`;
+    const ICON_UNDO = `<svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg>`;
 
     let allStudents = [];
     let photoDataUrl = '';
+    let studentPhotoDataUrl = '';
     let currentUser = null;
 
+    // ── QR MODAL ──
+    function openQrModal(student) {
+      document.getElementById('modalStudentName').textContent = student.name;
+      document.getElementById('modalStudentMeta').textContent = student.studentNo + ' · ' + student.yearLevel + ' — ' + student.section;
+      const qrDiv = document.getElementById('modalQrCode');
+      qrDiv.innerHTML = '';
+      new QRCode(qrDiv, { text: student.studentNo, width: 180, height: 180, colorDark: '#001f5a', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.H });
+      document.getElementById('qrModal').style.display = 'flex';
+    }
+    function closeQrModal() {
+      document.getElementById('qrModal').style.display = 'none';
+      document.getElementById('modalQrCode').innerHTML = '';
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeQrModal(); });
+
+    // ── AUTH ──
     async function checkAuth() {
       try {
         const res = await fetch('/api/auth/me', { credentials: 'include' });
-        if (!res.ok) {
-          document.getElementById('authGate').style.display = 'block';
-          return;
-        }
+        if (!res.ok) { document.getElementById('authGate').style.display = 'block'; return; }
         currentUser = await res.json();
         document.getElementById('adminContent').style.display = 'block';
         document.getElementById('adminWelcome').textContent = 'Logged in as: ' + currentUser.username;
-        if (currentUser.isSuperAdmin) {
-          document.getElementById('adminsTab').style.display = '';
-        }
+        if (currentUser.isSuperAdmin) document.getElementById('adminsTab').style.display = '';
         loadStudents();
-      } catch (e) {
-        document.getElementById('authGate').style.display = 'block';
-      }
+      } catch (e) { document.getElementById('authGate').style.display = 'block'; }
     }
 
     async function logout() {
@@ -218,9 +281,14 @@
       else if (tab === 'admins') loadAdmins();
     }
 
+    // ── STUDENTS ──
     function filterStudents() {
       const q = document.getElementById('s-search').value.toLowerCase();
-      renderStudentsTable(allStudents.filter(s => s.name.toLowerCase().includes(q) || s.studentNo.toLowerCase().includes(q) || s.section.toLowerCase().includes(q)));
+      renderStudentsTable(allStudents.filter(s =>
+        s.name.toLowerCase().includes(q) ||
+        s.studentNo.toLowerCase().includes(q) ||
+        s.section.toLowerCase().includes(q)
+      ));
     }
 
     async function loadStudents() {
@@ -233,26 +301,81 @@
     }
 
     function renderStudentsTable(students) {
-      if (students.length === 0) { document.getElementById('students-table-wrap').innerHTML = '<div class="loading-msg" style="padding:24px;">No students registered yet.</div>'; return; }
-      let html = '<div class="admin-table-scroll"><table class="admin-table"><thead><tr><th>Student No.</th><th>Name</th><th>Year</th><th>Section</th><th>Status</th><th></th></tr></thead><tbody>';
+      if (students.length === 0) {
+        document.getElementById('students-table-wrap').innerHTML = '<div class="loading-msg" style="padding:24px;">No students registered yet.</div>';
+        return;
+      }
+      let html = '<div class="admin-table-scroll"><table class="admin-table"><thead><tr><th>Photo</th><th>Student No.</th><th>Name</th><th>Year</th><th>Section</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
       for (const s of students) {
-        html += `<tr><td><code style="font-size:12px;">${s.studentNo}</code></td><td>${s.name}</td><td>${s.yearLevel}</td><td>${s.section}</td><td>${s.hasVoted ? '<span class="badge badge-green">Voted</span>' : '<span class="badge badge-gray">Not Yet</span>'}</td><td><button class="del-btn" onclick="deleteStudent('${s.studentNo}','${s.name}')" title="Remove">${ICON_X}</button></td></tr>`;
+        const photoHtml = s.photoData
+          ? `<img src="${s.photoData}" class="student-photo-thumb" alt="${s.name}" />`
+          : `<div class="student-avatar-thumb">${s.name.charAt(0)}</div>`;
+        const votedBadge = s.hasVoted
+          ? '<span class="badge badge-green">Voted</span>'
+          : '<span class="badge badge-gray">Not Yet</span>';
+        const resetBtn = s.hasVoted
+          ? `<button class="btn-reset" onclick="resetVote('${s.studentNo}','${s.name.replace(/'/g, "\\'")}')" title="Reset vote">${ICON_UNDO} Reset</button>`
+          : '';
+        html += `<tr>
+          <td>${photoHtml}</td>
+          <td><code style="font-size:12px;">${s.studentNo}</code></td>
+          <td>${s.name}</td>
+          <td>${s.yearLevel}</td>
+          <td>${s.section}</td>
+          <td>${votedBadge}</td>
+          <td><div class="action-cell">
+            <button class="btn-qr" onclick='openQrModal(${JSON.stringify(s)})' title="Show QR">${ICON_QR} QR</button>
+            ${resetBtn}
+            <button class="del-btn" onclick="deleteStudent('${s.studentNo}','${s.name.replace(/'/g, "\\'")}')" title="Remove">${ICON_X}</button>
+          </div></td>
+        </tr>`;
       }
       html += '</tbody></table></div>';
       document.getElementById('students-table-wrap').innerHTML = html;
     }
 
+    function handleStudentPhoto(input) {
+      const file = input.files[0];
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) { alert('Photo must be less than 5 MB.'); input.value = ''; return; }
+      const reader = new FileReader();
+      reader.onload = e => {
+        studentPhotoDataUrl = e.target.result;
+        document.getElementById('sPhotoPreview').style.display = 'none';
+        const img = document.getElementById('sPhotoPreviewImg');
+        img.src = studentPhotoDataUrl; img.style.display = 'block';
+        document.getElementById('sRemovePhotoBtn').style.display = 'inline-flex';
+        document.getElementById('sPhotoUploadArea').style.borderColor = 'var(--blue)';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeStudentPhoto() {
+      studentPhotoDataUrl = '';
+      document.getElementById('s-photo').value = '';
+      document.getElementById('sPhotoPreviewImg').style.display = 'none';
+      document.getElementById('sPhotoPreview').style.display = '';
+      document.getElementById('sRemovePhotoBtn').style.display = 'none';
+      document.getElementById('sPhotoUploadArea').style.borderColor = '';
+    }
+
     async function addStudent() {
-      const no = document.getElementById('s-no').value.trim(), name = document.getElementById('s-name').value.trim();
-      const year = document.getElementById('s-year').value, section = document.getElementById('s-section').value.trim();
-      const errEl = document.getElementById('s-err'); errEl.style.display = 'none';
+      const no = document.getElementById('s-no').value.trim();
+      const name = document.getElementById('s-name').value.trim();
+      const year = document.getElementById('s-year').value;
+      const section = document.getElementById('s-section').value.trim();
+      const errEl = document.getElementById('s-err');
+      errEl.style.display = 'none';
       if (!no || !name || !year || !section) { errEl.textContent = 'All fields are required.'; errEl.style.display = 'block'; return; }
       try {
-        const res = await fetch('/api/students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ studentNo: no, name, yearLevel: year, section }) });
+        const body = { studentNo: no, name, yearLevel: year, section };
+        if (studentPhotoDataUrl) body.photoData = studentPhotoDataUrl;
+        const res = await fetch('/api/students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(body) });
         const data = await res.json();
         if (!res.ok) { errEl.textContent = data.error || 'Failed to add student.'; errEl.style.display = 'block'; return; }
         ['s-no','s-name','s-section'].forEach(id => document.getElementById(id).value = '');
         document.getElementById('s-year').value = '';
+        removeStudentPhoto();
         loadStudents();
       } catch (e) { errEl.textContent = 'Network error.'; errEl.style.display = 'block'; }
     }
@@ -263,6 +386,16 @@
       loadStudents();
     }
 
+    async function resetVote(studentNo, name) {
+      if (!confirm(`Reset the vote for ${name} (${studentNo})? This will allow them to vote again.`)) return;
+      try {
+        const res = await fetch('/api/votes/' + encodeURIComponent(studentNo), { method: 'DELETE', credentials: 'include' });
+        if (!res.ok) { const d = await res.json(); alert(d.error || 'Failed to reset vote.'); return; }
+        loadStudents();
+      } catch (e) { alert('Network error. Please try again.'); }
+    }
+
+    // ── CANDIDATES ──
     function handlePhoto(input) {
       const file = input.files[0];
       if (!file) return;
@@ -296,7 +429,9 @@
         if (cands.length === 0) { wrap.innerHTML = '<div class="loading-msg" style="padding:24px;">No candidates added yet.</div>'; return; }
         let html = '<div class="admin-table-scroll"><table class="admin-table"><thead><tr><th>Photo</th><th>Name</th><th>Position</th><th>Year</th><th>Section</th><th>Motto</th><th></th></tr></thead><tbody>';
         for (const c of cands) {
-          const photo = c.photoData ? `<img src="${c.photoData}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />` : `<div style="width:40px;height:40px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px;">${c.name.charAt(0)}</div>`;
+          const photo = c.photoData
+            ? `<img src="${c.photoData}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />`
+            : `<div style="width:40px;height:40px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px;">${c.name.charAt(0)}</div>`;
           html += `<tr><td>${photo}</td><td><strong>${c.name}</strong></td><td><span class="badge badge-blue">${c.position}</span></td><td>${c.yearLevel}</td><td>${c.section}</td><td style="font-size:12px;color:#888;max-width:180px;">${c.motto || '—'}</td><td><button class="del-btn" onclick="deleteCandidate(${c.id},'${c.name.replace(/'/g,"\\'")}') " title="Remove">${ICON_X}</button></td></tr>`;
         }
         html += '</tbody></table></div>';
@@ -327,6 +462,7 @@
       loadCandidates();
     }
 
+    // ── ADMINS ──
     async function loadAdmins() {
       try {
         const res = await fetch('/api/admins', { credentials: 'include' });
