@@ -27,7 +27,7 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 app.use(
   session({
-    secret: process.env["SESSION_SECRET"] ?? "fallback-dev-secret",
+    secret: process.env["SESSION_SECRET"] ?? "owyeah",
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -45,7 +45,7 @@ const publicDir = path.join(__dirname, "..", "public");
 app.use(express.static(publicDir));
 
 app.get("/", (_req, res) => {
-  res.sendFile(path.join(publicDir, "index.html"));
+res.sendFile(path.join(publicDir,"index.html"));
 });
 
 export default app;
