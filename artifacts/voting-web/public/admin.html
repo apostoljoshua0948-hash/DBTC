@@ -112,7 +112,7 @@
             <div class="admin-form-grid">
               <div class="form-group"><label>Student Number</label><input type="text" id="s-no" placeholder="e.g. DBTC-2026-001" /></div>
               <div class="form-group"><label>Full Name</label><input type="text" id="s-name" placeholder="e.g. Joshua Apostol" /></div>
-              <div class="form-group"><label>Year Level</label><select id="s-year"><option value="">Select year level</option><option>Grade 11</option><option>Grade 12</option></select></div>
+              <div class="form-group"><label>Year Level</label><select id="s-year"><option value="">Select year level</option><option>Grade 11</option><option>Grade 12</option><option>TVET</option></select></div>
               <div class="form-group"><label>Section</label><input type="text" id="s-section" placeholder="e.g. STEM A" /></div>
               <div class="form-group" style="grid-column:1/-1;">
                 <label>Student Photo <span style="font-weight:400;color:#888;">(optional)</span></label>
@@ -132,7 +132,7 @@
               </div>
             </div>
             <div id="s-err" class="error-msg" style="display:none;"></div>
-            <button class="btn btn-gold" onclick="addStudent()">+ Add Student</button>
+            <button class="btn btn-gold" id="addStudentBtn" onclick="addStudent()">+ Add Student</button>
           </div>
           <div class="admin-panel" style="margin-top:24px;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:12px;">
@@ -163,7 +163,7 @@
                   <option>Committee on Health &amp; Wellness</option><option>Committee on Spirituality</option>
                 </select>
               </div>
-              <div class="form-group"><label>Year Level</label><select id="c-year"><option value="">Select year level</option><option>Grade 11</option><option>Grade 12</option></select></div>
+              <div class="form-group"><label>Year Level</label><select id="c-year"><option value="">Select year level</option><option>Grade 11</option><option>Grade 12</option><option>TVET</option></select></div>
               <div class="form-group"><label>Section</label><input type="text" id="c-section" placeholder="e.g. STEM A" /></div>
               <div class="form-group" style="grid-column:1/-1;"><label>Campaign Motto <span style="font-weight:400;color:#888;">(optional)</span></label><input type="text" id="c-motto" placeholder="e.g. Serving with love and dedication" /></div>
               <div class="form-group" style="grid-column:1/-1;">
@@ -184,7 +184,7 @@
               </div>
             </div>
             <div id="c-err" class="error-msg" style="display:none;"></div>
-            <button class="btn btn-gold" onclick="addCandidate()">+ Add Candidate</button>
+            <button class="btn btn-gold" id="addCandidateBtn" onclick="addCandidate()">+ Add Candidate</button>
           </div>
           <div class="admin-panel" style="margin-top:24px;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:12px;">
@@ -367,6 +367,8 @@
       const errEl = document.getElementById('s-err');
       errEl.style.display = 'none';
       if (!no || !name || !year || !section) { errEl.textContent = 'All fields are required.'; errEl.style.display = 'block'; return; }
+      const btn = document.getElementById('addStudentBtn');
+      btn.disabled = true; btn.textContent = 'Adding…';
       try {
         const body = { studentNo: no, name, yearLevel: year, section };
         if (studentPhotoDataUrl) body.photoData = studentPhotoDataUrl;
@@ -378,6 +380,7 @@
         removeStudentPhoto();
         loadStudents();
       } catch (e) { errEl.textContent = 'Network error.'; errEl.style.display = 'block'; }
+      finally { btn.disabled = false; btn.textContent = '+ Add Student'; }
     }
 
     async function deleteStudent(studentNo, name) {
@@ -445,6 +448,8 @@
       const motto = document.getElementById('c-motto').value.trim();
       const errEl = document.getElementById('c-err'); errEl.style.display = 'none';
       if (!name || !position || !year || !section) { errEl.textContent = 'Name, Position, Year Level, and Section are required.'; errEl.style.display = 'block'; return; }
+      const btn = document.getElementById('addCandidateBtn');
+      btn.disabled = true; btn.textContent = 'Adding…';
       try {
         const res = await fetch('/api/candidates', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ name, position, yearLevel: year, section, motto, photoData: photoDataUrl }) });
         const data = await res.json();
@@ -454,6 +459,7 @@
         removePhoto();
         loadCandidates();
       } catch (e) { errEl.textContent = 'Network error.'; errEl.style.display = 'block'; }
+      finally { btn.disabled = false; btn.textContent = '+ Add Candidate'; }
     }
 
     async function deleteCandidate(id, name) {
@@ -499,6 +505,5 @@
 
     checkAuth();
   </script>
-  <script src="/js/ai-chat.js"></script>
 </body>
 </html>

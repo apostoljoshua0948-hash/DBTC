@@ -60,6 +60,7 @@
                 <option value="">Select year level</option>
                 <option>Grade 11</option>
                 <option>Grade 12</option>
+                <option>TVET</option>
               </select>
             </div>
             <div class="form-group">
@@ -68,7 +69,7 @@
             </div>
           </div>
           <div id="s-err" class="error-msg" style="display:none;"></div>
-          <button class="btn btn-gold" onclick="addStudent()">+ Add Student</button>
+          <button class="btn btn-gold" id="addStudentBtn" onclick="addStudent()">+ Add Student</button>
         </div>
 
         <div class="admin-panel" style="margin-top:24px;">
@@ -116,6 +117,7 @@
                 <option value="">Select year level</option>
                 <option>Grade 11</option>
                 <option>Grade 12</option>
+                <option>TVET</option>
               </select>
             </div>
             <div class="form-group">
@@ -128,7 +130,7 @@
             </div>
           </div>
           <div id="c-err" class="error-msg" style="display:none;"></div>
-          <button class="btn btn-gold" onclick="addCandidate()">+ Add Candidate</button>
+          <button class="btn btn-gold" id="addCandidateBtn" onclick="addCandidate()">+ Add Candidate</button>
         </div>
 
         <div class="admin-panel" style="margin-top:24px;">
@@ -236,6 +238,8 @@
         return;
       }
 
+      const btn = document.getElementById('addStudentBtn');
+      btn.disabled = true; btn.textContent = 'Adding…';
       try {
         const res = await fetch('/api/students', {
           method: 'POST',
@@ -254,6 +258,8 @@
       } catch (e) {
         errEl.textContent = 'Network error. Please try again.';
         errEl.style.display = 'block';
+      } finally {
+        btn.disabled = false; btn.textContent = '+ Add Student';
       }
     }
 
@@ -310,6 +316,8 @@
         return;
       }
 
+      const btn = document.getElementById('addCandidateBtn');
+      btn.disabled = true; btn.textContent = 'Adding…';
       try {
         const res = await fetch('/api/candidates', {
           method: 'POST',
@@ -329,6 +337,8 @@
       } catch (e) {
         errEl.textContent = 'Network error. Please try again.';
         errEl.style.display = 'block';
+      } finally {
+        btn.disabled = false; btn.textContent = '+ Add Candidate';
       }
     }
 
@@ -340,6 +350,5 @@
 
     loadStudents();
   </script>
-  <script src="/js/ai-chat.js"></script>
 </body>
 </html>
