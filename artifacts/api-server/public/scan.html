@@ -103,15 +103,7 @@
         <h3>Don Bosco Training Center</h3>
         <p>Mati City, Davao Oriental — Officers Election 2025.</p>
       </div>
-      <div class="footer-col">
-        <h4>Quick Links</h4>
-        <ul>
-          <li><a href="/index.html">Home</a></li>
-          <li><a href="/myqr.html">My QR Code</a></li>
-          <li><a href="/scan.html">Voting Booth</a></li>
-          <li><a href="/results.html">Results</a></li>
-        </ul>
-      </div>
+      
     </div>
     <div class="footer-bottom">&copy; 2025 Don Bosco Training Center — Officers Election, Mati City.</div>
   </footer>
@@ -133,33 +125,80 @@
     const scanStatus = document.getElementById('scanStatus');
 
     async function startCamera() {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-        video.srcObject = stream;
-        video.onloadedmetadata = () => {
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
+      scanStatus.textContent = 'Starting camera…';
+      scanStatus.style.color = '#1a4db5';
+
+      // Remove any existing retry button
+      const old = document.getElementById('retryBtn');
+      if (old) old.remove();
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showCameraError('Camera API not available. Use manual entry below.');
+        return;
+      }
+
+      // Try rear camera first, fall back to any camera
+      const constraints = [
+        { video: { facingMode: { exact: 'environment' } } },
+        { video: { facingMode: 'environment' } },
+        { video: true },
+      ];
+
+      let lastErr = null;
+      for (const c of constraints) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia(c);
+          video.srcObject = stream;
+          await new Promise((resolve, reject) => {
+            video.onloadedmetadata = resolve;
+            video.onerror = reject;
+          });
+          canvas.width = video.videoWidth || 640;
+          canvas.height = video.videoHeight || 480;
           scanning = true;
           scanStatus.textContent = 'Ready — waiting for QR code…';
           scanStatus.style.color = '#2e7d32';
           tick();
-        };
-      } catch (e) {
-        scanStatus.textContent = 'Camera access denied. Use manual entry below.';
-        scanStatus.style.color = '#c53030';
+          return;
+        } catch (e) {
+          lastErr = e;
+          if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+        }
       }
+
+      const msg = lastErr && lastErr.name === 'NotAllowedError'
+        ? 'Camera permission denied. Allow camera access and try again.'
+        : 'Could not start camera. Use manual entry below.';
+      showCameraError(msg);
+    }
+
+    function showCameraError(msg) {
+      scanStatus.textContent = '❌ ' + msg;
+      scanStatus.style.color = '#c53030';
+      // Add retry button
+      const btn = document.createElement('button');
+      btn.id = 'retryBtn';
+      btn.className = 'btn btn-gold';
+      btn.style = 'margin-top:12px; padding:8px 20px; font-size:13px;';
+      btn.textContent = '🔄 Retry Camera';
+      btn.onclick = startCamera;
+      scanStatus.parentNode.insertBefore(btn, scanStatus.nextSibling);
     }
 
     function tick() {
       if (!scanning) return;
-      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+      if (video.readyState >= video.HAVE_ENOUGH_DATA) {
+        if (canvas.width !== video.videoWidth) {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+        }
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
-        if (code && !scanCooldown) {
+        const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'attemptBoth' });
+        if (code && code.data && !scanCooldown) {
           scanCooldown = true;
-          lookupStudent(code.data);
-          setTimeout(() => { scanCooldown = false; }, 2000);
+          lookupStudent(code.data.trim());
+          setTimeout(() => { scanCooldown = false; }, 2500);
         }
       }
       requestAnimationFrame(tick);
