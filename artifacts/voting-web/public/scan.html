@@ -76,7 +76,7 @@
             <!-- filled by JS -->
           </div>
           <div style="flex:1;min-width:0;">
-            <div style="font-size:11px;font-weight:700;letter-spacing:.12em;color:rgba(255,255,255,.55);text-transform:uppercase;margin-bottom:4px;">✅ Student Verified</div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:.12em;color:rgba(255,255,255,.55);text-transform:uppercase;margin-bottom:4px;display:flex;align-items:center;gap:5px;"><svg style="width:13px;height:13px;color:#4caf50;flex-shrink:0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Student Verified</div>
             <div id="ballotStudentName" style="font-size:22px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:4px;word-break:break-word;"></div>
             <div id="ballotStudentNo" style="font-size:14px;font-weight:600;color:#f4c842;margin-bottom:2px;"></div>
             <div id="ballotStudentMeta" style="font-size:13px;color:rgba(255,255,255,.65);"></div>
@@ -171,7 +171,7 @@
           canvas.width = video.videoWidth || 640;
           canvas.height = video.videoHeight || 480;
           scanning = true;
-          scanStatus.innerHTML = '🟢 Ready — point camera at a QR code';
+          scanStatus.innerHTML = '<svg style="width:14px;height:14px;vertical-align:middle;margin-right:5px;color:#2e7d32;" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>Ready — point camera at a QR code';
           scanStatus.style.color = '#2e7d32';
           tick();
           return;
@@ -188,13 +188,13 @@
     }
 
     function showCameraError(msg) {
-      scanStatus.innerHTML = '❌ ' + msg;
+      scanStatus.innerHTML = '<svg style="width:14px;height:14px;vertical-align:middle;margin-right:5px;color:#c53030;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>' + msg;
       scanStatus.style.color = '#c53030';
       const btn = document.createElement('button');
       btn.id = 'retryBtn';
       btn.className = 'btn btn-gold';
       btn.style.cssText = 'margin-top:12px;padding:9px 22px;font-size:13px;display:block;margin-left:auto;margin-right:auto;';
-      btn.textContent = '🔄 Retry Camera';
+      btn.innerHTML = '<svg style="width:13px;height:13px;vertical-align:middle;margin-right:5px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Retry Camera';
       btn.onclick = startCamera;
       scanStatus.parentNode.insertBefore(btn, scanStatus.nextSibling);
     }
