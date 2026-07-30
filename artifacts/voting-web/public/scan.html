@@ -67,13 +67,22 @@
       </div>
 
       <div id="ballotPanel" style="display:none;">
-        <div class="ballot-header">
-          <div class="ballot-header-info">
-            <div class="ballot-student-name" id="ballotStudentName"></div>
-            <div class="ballot-student-meta" id="ballotStudentMeta"></div>
+
+        <!-- Student profile card shown after scan -->
+        <div id="studentCard" style="background:linear-gradient(135deg,#0d2b8e 0%,#1a4db5 100%);border-radius:20px;padding:28px 24px 24px;margin-bottom:20px;display:flex;align-items:center;gap:20px;box-shadow:0 8px 32px rgba(13,43,142,.25);position:relative;overflow:hidden;">
+          <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.06);pointer-events:none;"></div>
+          <div style="position:absolute;bottom:-20px;left:60px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.04);pointer-events:none;"></div>
+          <div id="studentPhotoWrap" style="flex-shrink:0;">
+            <!-- filled by JS -->
           </div>
-          <button class="btn btn-outline" style="font-size:13px;padding:8px 16px;color:var(--white);border-color:rgba(255,255,255,.4);" onclick="resetScanner()">
-            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:11px;font-weight:700;letter-spacing:.12em;color:rgba(255,255,255,.55);text-transform:uppercase;margin-bottom:4px;">✅ Student Verified</div>
+            <div id="ballotStudentName" style="font-size:22px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:4px;word-break:break-word;"></div>
+            <div id="ballotStudentNo" style="font-size:14px;font-weight:600;color:#f4c842;margin-bottom:2px;"></div>
+            <div id="ballotStudentMeta" style="font-size:13px;color:rgba(255,255,255,.65);"></div>
+          </div>
+          <button onclick="resetScanner()" style="position:absolute;top:14px;right:14px;background:rgba(255,255,255,.12);border:none;border-radius:8px;padding:6px 10px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;">
+            <svg style="width:13px;height:13px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
             Back
           </button>
         </div>
@@ -240,8 +249,19 @@
       document.getElementById('ballotPanel').style.display = 'block';
       document.getElementById('successPanel').style.display = 'none';
       document.getElementById('ballotForm').style.display = 'block';
+
+      // Populate student card
       document.getElementById('ballotStudentName').textContent = student.name;
-      document.getElementById('ballotStudentMeta').textContent = student.studentNo + ' • ' + student.yearLevel + ' — ' + student.section;
+      document.getElementById('ballotStudentNo').textContent = student.studentNo;
+      document.getElementById('ballotStudentMeta').textContent = student.yearLevel + ' — ' + student.section;
+
+      const photoWrap = document.getElementById('studentPhotoWrap');
+      if (student.photoData) {
+        photoWrap.innerHTML = `<img src="${student.photoData}" alt="${student.name}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid #f4c842;box-shadow:0 4px 16px rgba(0,0,0,.3);" />`;
+      } else {
+        const initials = student.name.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+        photoWrap.innerHTML = `<div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#f4c842,#e6a800);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#0d2b8e;border:3px solid rgba(255,255,255,.3);box-shadow:0 4px 16px rgba(0,0,0,.3);flex-shrink:0;">${initials}</div>`;
+      }
 
       const positions = {};
       for (const c of candidates) { if (!positions[c.position]) positions[c.position] = []; positions[c.position].push(c); }
