@@ -5,6 +5,7 @@ import candidatesRouter from "./candidates";
 import votesRouter from "./votes";
 import authRouter from "./auth";
 import adminsRouter from "./admins";
+import settingsRouter from "./settings";
 
 const router: IRouter = Router();
 
@@ -14,5 +15,6 @@ router.use(adminsRouter);
 router.use(studentsRouter);
 router.use(candidatesRouter);
 router.use(votesRouter);
+router.use(settingsRouter);
 
 export default router;

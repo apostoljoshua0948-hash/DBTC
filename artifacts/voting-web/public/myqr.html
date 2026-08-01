@@ -63,7 +63,13 @@
               <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
               Already Voted
             </div>
-            <p style="font-size:12px; color:var(--gray-text); text-align:center; margin-top:16px; line-height:1.5;">Present this QR code to the election officer at the voting booth. Do not share your QR code with others.</p>
+            <div style="display:flex;gap:10px;justify-content:center;margin-top:16px;">
+              <button class="btn btn-gold" style="font-size:13px;padding:9px 20px;" onclick="downloadQR()">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Save QR Code
+              </button>
+            </div>
+            <p style="font-size:12px; color:var(--gray-text); text-align:center; margin-top:12px; line-height:1.5;">Present this QR code to the election officer at the voting booth. Do not share your QR code with others.</p>
           </div>
         </div>
       </div>
@@ -110,6 +116,26 @@
       } catch (e) { errMsg.textContent = 'Something went wrong. Please try again.'; errMsg.style.display = 'block'; }
     }
     document.getElementById('studentNo').addEventListener('keydown', e => { if (e.key === 'Enter') generateQR(); });
+
+    function downloadQR() {
+      const canvas = document.querySelector('#qrcode canvas');
+      const img = document.querySelector('#qrcode img');
+      let dataUrl;
+      if (canvas) {
+        dataUrl = canvas.toDataURL('image/png');
+      } else if (img) {
+        // fallback: draw img onto a temp canvas
+        const tmp = document.createElement('canvas');
+        tmp.width = img.width || 200; tmp.height = img.height || 200;
+        tmp.getContext('2d').drawImage(img, 0, 0);
+        dataUrl = tmp.toDataURL('image/png');
+      } else { return; }
+      const studentNo = document.getElementById('studentNo').value.trim();
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = 'QR-' + studentNo + '.png';
+      a.click();
+    }
   </script>
 </body>
 </html>
