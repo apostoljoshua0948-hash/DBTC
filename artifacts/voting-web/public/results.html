@@ -5,6 +5,32 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Results — Don Bosco TC Election 2026</title>
   <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    /* ── Animated bars ── */
+    @keyframes barGrow { from { width: 0 !important; opacity: 0; } to { opacity: 1; } }
+    .result-bar { animation: barGrow .9s cubic-bezier(.4,0,.2,1) both; }
+
+    /* ── Countdown ring ── */
+    .refresh-ring-wrap { display:flex; align-items:center; gap:8px; }
+    .ring-svg { width:28px; height:28px; flex-shrink:0; transform:rotate(-90deg); }
+    .ring-bg { fill:none; stroke:#e5e7eb; stroke-width:3; }
+    .ring-arc { fill:none; stroke:#f4c842; stroke-width:3; stroke-linecap:round; transition:stroke-dashoffset .9s linear; }
+
+    /* ── Turnout progress bar ── */
+    .turnout-track { height:8px; background:#e5e7eb; border-radius:99px; overflow:hidden; margin-top:8px; }
+    .turnout-fill  { height:100%; border-radius:99px; background:linear-gradient(90deg,#0d2b8e,#4c7ef3); transition:width .9s cubic-bezier(.4,0,.2,1); }
+
+    /* ── Result row leader glow ── */
+    .result-row-leader { box-shadow:0 0 0 2px #f4c84240; background:linear-gradient(to right,#fffbeb,#fff); }
+
+    /* ── Section header ── */
+    .results-meta-bar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+    .last-updated-tag { font-size:12px; color:var(--gray-text); background:var(--gray-light); padding:4px 12px; border-radius:20px; }
+
+    /* ── No-results empty state ── */
+    .empty-state { text-align:center; padding:60px 24px; }
+    .empty-state svg { opacity:.3; margin-bottom:16px; }
+  </style>
 </head>
 <body>
 
@@ -30,48 +56,92 @@
 
   <div class="page-header">
     <h1>Election <span>Results</span></h1>
-    <p>Live vote tally for Officers Election A.Y. 2026–2027. Auto-refreshes every 30 seconds.</p>
+    <p>Live vote tally for Officers Election A.Y. 2026–2027.</p>
   </div>
 
   <section class="section">
     <div class="section-inner">
+
+      <!-- Summary bar -->
       <div class="results-summary-bar">
         <div class="rsb-item"><span id="rVoted">—</span><label>Votes Cast</label></div>
         <div class="rsb-item"><span id="rTotal">—</span><label>Registered</label></div>
         <div class="rsb-item"><span id="rPct">—</span><label>Turnout</label></div>
         <div class="rsb-refresh">
-          <button class="btn btn-gold" style="padding:8px 20px;font-size:13px;" onclick="loadResults()">
-            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-            Refresh
-          </button>
+          <div class="refresh-ring-wrap">
+            <svg class="ring-svg" viewBox="0 0 28 28">
+              <circle class="ring-bg" cx="14" cy="14" r="11"/>
+              <circle class="ring-arc" id="ringArc" cx="14" cy="14" r="11"
+                stroke-dasharray="69.1" stroke-dashoffset="0"/>
+            </svg>
+            <button class="btn btn-gold" style="padding:8px 18px;font-size:13px;" onclick="manualRefresh()">
+              <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              Refresh
+            </button>
+          </div>
         </div>
       </div>
-      <div id="lastUpdated" style="font-size:12px;color:var(--gray-text);text-align:right;margin-bottom:8px;"></div>
+
+      <!-- Turnout progress -->
+      <div style="margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--gray-text);font-weight:600;margin-bottom:4px;">
+          <span>Voter Turnout</span>
+          <span id="turnoutLabel">—</span>
+        </div>
+        <div class="turnout-track"><div class="turnout-fill" id="turnoutFill" style="width:0%;"></div></div>
+      </div>
+
+      <!-- Meta bar -->
+      <div class="results-meta-bar">
+        <div style="font-size:13px;font-weight:700;color:var(--blue-dark);">
+          <svg class="icon icon-sm" style="vertical-align:middle;margin-right:4px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Auto-refreshes in <span id="countdownText" style="color:#0d2b8e;">30s</span>
+        </div>
+        <div id="lastUpdated" class="last-updated-tag"></div>
+      </div>
+
       <div id="resultsContainer"><div class="loading-msg" style="padding:60px;text-align:center;">Loading results…</div></div>
-      <style>
-        @keyframes barGrow { from { width: 0 !important; } }
-        .result-bar { animation: barGrow .8s cubic-bezier(.4,0,.2,1) both; }
-      </style>
     </div>
   </section>
 
   <footer>
     <div class="footer-inner">
       <div class="footer-brand"><h3>Don Bosco Training Center</h3><p>Mati City, Davao Oriental — Officers Election 2026.</p></div>
-      
     </div>
     <div class="footer-bottom">&copy; 2026 Don Bosco Training Center — Officers Election, Mati City.</div>
   </footer>
 
   <script>
-    const toggle = document.getElementById('navToggle');
-    const links = document.getElementById('navLinks');
-    toggle.addEventListener('click', () => links.classList.toggle('open'));
+    document.getElementById('navToggle').addEventListener('click', () =>
+      document.getElementById('navLinks').classList.toggle('open'));
 
     const ICON_STAR = `<svg class="icon icon-sm" viewBox="0 0 24 24" fill="var(--gold-dark)" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
-
     const posOrder = ['President','Vice President','Secretary','Treasurer','Auditor','Public Relations Officer'];
 
+    const INTERVAL = 30;
+    let countdown = INTERVAL;
+    let autoTimer = null, countdownTimer = null;
+
+    // ── Countdown ring ──
+    const CIRCUMFERENCE = 69.1; // 2π × r=11
+    function updateRing(remaining) {
+      const pct = remaining / INTERVAL;
+      const offset = CIRCUMFERENCE * (1 - pct);
+      document.getElementById('ringArc').style.strokeDashoffset = offset;
+      document.getElementById('countdownText').textContent = remaining + 's';
+    }
+
+    function startCountdown() {
+      clearInterval(countdownTimer);
+      countdown = INTERVAL;
+      updateRing(countdown);
+      countdownTimer = setInterval(() => {
+        countdown = Math.max(0, countdown - 1);
+        updateRing(countdown);
+      }, 1000);
+    }
+
+    // ── Load results ──
     async function loadResults() {
       try {
         const [resultsRes, candsRes] = await Promise.all([fetch('/api/results'), fetch('/api/candidates')]);
@@ -80,50 +150,89 @@
         const photoMap = {};
         for (const c of cands) photoMap[c.id] = c.photoData;
 
-        document.getElementById('rVoted').textContent = data.totalVoted;
-        document.getElementById('rTotal').textContent = data.totalStudents;
-        const pct = data.totalStudents > 0 ? Math.round((data.totalVoted / data.totalStudents) * 100) : 0;
+        const voted = data.totalVoted ?? 0;
+        const total = data.totalStudents ?? 0;
+        const pct = total > 0 ? Math.round((voted / total) * 100) : 0;
+
+        document.getElementById('rVoted').textContent = voted;
+        document.getElementById('rTotal').textContent = total;
         document.getElementById('rPct').textContent = pct + '%';
+        document.getElementById('turnoutLabel').textContent = pct + '% (' + voted + ' of ' + total + ')';
+
+        // Animate turnout fill (force reflow)
+        const fill = document.getElementById('turnoutFill');
+        fill.style.width = '0%';
+        requestAnimationFrame(() => requestAnimationFrame(() => { fill.style.width = pct + '%'; }));
+
+        const now = new Date();
+        document.getElementById('lastUpdated').textContent = 'Updated ' + now.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+
         const container = document.getElementById('resultsContainer');
-        if (data.results.length === 0) { container.innerHTML = '<div class="loading-msg" style="padding:60px;text-align:center;">No votes recorded yet.</div>'; return; }
+        if (!data.results || data.results.length === 0) {
+          container.innerHTML = `<div class="empty-state">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+            <p style="color:var(--gray-text);font-size:15px;">No votes recorded yet.</p>
+          </div>`;
+          return;
+        }
 
         const grouped = {};
         for (const r of data.results) { if (!grouped[r.position]) grouped[r.position] = []; grouped[r.position].push(r); }
-        const sortedPos = Object.keys(grouped).sort((a, b) => { const ai = posOrder.indexOf(a), bi = posOrder.indexOf(b); if (ai === -1 && bi === -1) return a.localeCompare(b); if (ai === -1) return 1; if (bi === -1) return -1; return ai - bi; });
+        const sortedPos = Object.keys(grouped).sort((a,b) => { const ai=posOrder.indexOf(a),bi=posOrder.indexOf(b); if(ai===-1&&bi===-1)return a.localeCompare(b); if(ai===-1)return 1; if(bi===-1)return -1; return ai-bi; });
 
         let html = '';
         for (const pos of sortedPos) {
           const posResults = grouped[pos];
-          const total = posResults.reduce((s, c) => s + c.voteCount, 0);
+          const tot = posResults.reduce((s,c) => s + c.voteCount, 0);
           const maxVotes = posResults[0]?.voteCount || 0;
           html += `<div class="result-block"><div class="result-block-title">${pos}</div><div class="result-candidates-list">`;
           posResults.forEach((c, i) => {
-            const pctC = total > 0 ? Math.round((c.voteCount / total) * 100) : 0;
+            const pctC = tot > 0 ? Math.round((c.voteCount / tot) * 100) : 0;
             const isLeader = i === 0 && c.voteCount > 0;
             const photo = photoMap[c.candidateId];
             const avatar = photo
               ? `<img src="${photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0;" />`
               : `<div style="width:40px;height:40px;border-radius:50%;background:${isLeader?'var(--gold-dark)':'var(--blue)'};display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px;flex-shrink:0;">${(c.candidateName||'?').charAt(0)}</div>`;
-            html += `<div class="result-row ${isLeader ? 'result-row-leader' : ''}">
-              <div class="result-rank">${i + 1}</div>
+            const barW = maxVotes > 0 ? Math.round((c.voteCount / maxVotes) * 100) : 0;
+            html += `<div class="result-row ${isLeader?'result-row-leader':''}">
+              <div class="result-rank">${i+1}</div>
               ${avatar}
               <div class="result-cand-info">
                 <div class="result-cand-name">${isLeader ? ICON_STAR : ''}${c.candidateName}</div>
-                <div class="result-bar-wrap"><div class="result-bar" style="width:${maxVotes > 0 ? Math.round((c.voteCount/maxVotes)*100) : 0}%"></div></div>
+                <div class="result-bar-wrap"><div class="result-bar" style="width:${barW}%"></div></div>
               </div>
               <div class="result-cand-count"><strong>${c.voteCount}</strong><span>${pctC}%</span></div>
             </div>`;
           });
-          html += `</div><div class="result-block-total">${total} total vote${total !== 1 ? 's' : ''} for this position</div></div>`;
+          html += `</div><div class="result-block-total">${tot} total vote${tot!==1?'s':''} for this position</div></div>`;
         }
+
+        // Remove old content, set new, then trigger bar animations via class removal+re-add
         container.innerHTML = html;
-        const now = new Date();
-        document.getElementById('lastUpdated').textContent = 'Last updated: ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      } catch (e) { document.getElementById('resultsContainer').innerHTML = '<div class="loading-msg" style="padding:60px;text-align:center;">Failed to load results.</div>'; }
+        // Force reflow so animation fires on each refresh
+        const bars = container.querySelectorAll('.result-bar');
+        bars.forEach(b => { b.style.animationName = 'none'; });
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          bars.forEach(b => { b.style.animationName = ''; });
+        }));
+
+      } catch (e) {
+        document.getElementById('resultsContainer').innerHTML =
+          '<div class="loading-msg" style="padding:60px;text-align:center;">Failed to load results. Retrying soon…</div>';
+      }
     }
 
+    function manualRefresh() {
+      clearInterval(autoTimer);
+      loadResults();
+      startCountdown();
+      autoTimer = setInterval(() => { loadResults(); startCountdown(); }, INTERVAL * 1000);
+    }
+
+    // Boot
     loadResults();
-    setInterval(loadResults, 30000);
+    startCountdown();
+    autoTimer = setInterval(() => { loadResults(); startCountdown(); }, INTERVAL * 1000);
   </script>
 </body>
 </html>

@@ -6,6 +6,62 @@
   <title>Voting Booth — Don Bosco TC Election 2026</title>
   <link rel="stylesheet" href="/css/style.css" />
   <script src="/js/jsQR.min.js"></script>
+  <style>
+    /* ── Scanner viewport extras ── */
+    .scanner-viewport { position:relative; width:100%; max-width:400px; margin:0 auto 16px; aspect-ratio:1; background:#000; border-radius:16px; overflow:hidden; }
+    .scanner-viewport video { width:100%; height:100%; object-fit:cover; display:block; }
+    .scanner-overlay { position:absolute; inset:0; pointer-events:none; }
+    .qr-flash { position:absolute; inset:0; background:rgba(72,199,120,.45); opacity:0; pointer-events:none; transition:opacity .08s; border-radius:16px; }
+    .qr-flash.active { opacity:1; }
+
+    /* Scanner corner brackets */
+    .sc { position:absolute; width:32px; height:32px; border-color:#f4c842; border-style:solid; transition:transform .2s; }
+    .sc.tl { top:14px; left:14px; border-width:3px 0 0 3px; border-radius:4px 0 0 0; }
+    .sc.tr { top:14px; right:14px; border-width:3px 3px 0 0; border-radius:0 4px 0 0; }
+    .sc.bl { bottom:14px; left:14px; border-width:0 0 3px 3px; border-radius:0 0 0 4px; }
+    .sc.br { bottom:14px; right:14px; border-width:0 3px 3px 0; border-radius:0 0 4px 0; }
+    .sc.detected { border-color:#48c778; transform:scale(1.1); }
+    .scanner-line { position:absolute; left:14px; right:14px; height:2px; background:linear-gradient(90deg,transparent,#f4c842,transparent); opacity:.8; animation:scanline 2s ease-in-out infinite; top:14px; }
+    @keyframes scanline { 0%,100% { top:14px; opacity:.4; } 50% { top:calc(100% - 16px); opacity:.9; } }
+
+    /* Camera toolbar */
+    .cam-toolbar { display:flex; gap:8px; justify-content:center; margin-bottom:12px; }
+    .cam-btn { background:rgba(13,43,142,.08); border:1.5px solid var(--gray-mid); border-radius:10px; padding:8px 14px; font-size:13px; font-weight:600; color:var(--blue-dark); cursor:pointer; display:flex; align-items:center; gap:6px; font-family:inherit; transition:background .15s,border-color .15s; }
+    .cam-btn:hover { background:rgba(13,43,142,.14); }
+    .cam-btn.active { background:#0d2b8e; border-color:#0d2b8e; color:#fff; }
+    .cam-btn:disabled { opacity:.4; cursor:default; }
+
+    /* Scan status */
+    .scan-status { text-align:center; font-size:14px; font-weight:600; color:var(--gray-text); padding:10px 14px; display:flex; align-items:center; justify-content:center; gap:6px; min-height:44px; border-radius:10px; transition:background .2s; }
+    .scan-status.ready { color:#1e7e34; background:#f0faf3; }
+    .scan-status.error { color:#c53030; background:#fff5f5; }
+    .scan-status.warn  { color:#c47600; background:#fffbeb; }
+    .scan-status.info  { color:#1a4db5; background:#eff4ff; }
+
+    /* Already-voted modal */
+    .av-modal-bg { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:9000; display:flex; align-items:center; justify-content:center; padding:20px; }
+    .av-modal { background:#fff; border-radius:20px; padding:36px 28px; max-width:380px; width:100%; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.25); animation:modalIn .25s cubic-bezier(.34,1.56,.64,1); }
+    @keyframes modalIn { from { opacity:0; transform:scale(.88); } }
+    .av-icon-wrap { width:72px; height:72px; border-radius:50%; background:#fff8e1; display:flex; align-items:center; justify-content:center; margin:0 auto 18px; }
+
+    /* Confirm modal */
+    .confirm-modal-bg { position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:9000; display:flex; align-items:center; justify-content:center; padding:20px; overflow-y:auto; }
+    .confirm-modal { background:#fff; border-radius:20px; padding:32px 24px 28px; max-width:460px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,.25); animation:modalIn .25s cubic-bezier(.34,1.56,.64,1); max-height:90vh; overflow-y:auto; }
+    .confirm-choice { display:flex; align-items:center; gap:12px; padding:10px 14px; border:1.5px solid #e2e8f0; border-radius:10px; margin-bottom:8px; }
+    .confirm-pos { font-size:11px; font-weight:700; letter-spacing:.08em; color:#6b7280; text-transform:uppercase; margin-bottom:4px; }
+    .confirm-name { font-size:15px; font-weight:700; color:#0d2b8e; }
+
+    /* Closed voting screen */
+    .voting-closed-card { text-align:center; padding:60px 24px; background:#fff; border-radius:20px; box-shadow:0 4px 24px rgba(0,0,0,.08); }
+
+    /* Voter card */
+    #studentCard { background:linear-gradient(135deg,#0d2b8e 0%,#1a4db5 100%); border-radius:20px; padding:28px 24px 24px; margin-bottom:20px; display:flex; align-items:center; gap:20px; box-shadow:0 8px 32px rgba(13,43,142,.25); position:relative; overflow:hidden; }
+
+    /* Success confetti */
+    .confetti-wrap { position:fixed; inset:0; pointer-events:none; z-index:8000; overflow:hidden; }
+    .confetti-piece { position:absolute; width:10px; height:10px; top:-20px; animation:confettiFall linear forwards; border-radius:2px; }
+    @keyframes confettiFall { to { transform:translateY(110vh) rotate(720deg); opacity:0; } }
+  </style>
 </head>
 <body>
 
@@ -46,37 +102,71 @@
             <svg class="icon icon-md" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
             Point camera at student's QR code
           </div>
+
+          <!-- Camera control toolbar -->
+          <div class="cam-toolbar">
+            <button class="cam-btn" id="torchBtn" onclick="toggleTorch()" disabled title="Toggle flashlight">
+              <svg style="width:15px;height:15px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6c0-2.21-2.69-4-6-4S6 3.79 6 6c0 1.68 1.02 3.13 2.54 3.88L7 22h10l-1.54-12.12C16.98 9.13 18 7.68 18 6z"/></svg>
+              Torch
+            </button>
+            <button class="cam-btn" id="flipBtn" onclick="flipCamera()" title="Switch camera">
+              <svg style="width:15px;height:15px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><polyline points="15 13 18 10 21 13"/><line x1="9" y1="10" x2="18" y2="10"/></svg>
+              Flip
+            </button>
+            <button class="cam-btn" id="pauseBtn" onclick="togglePause()" title="Pause/resume scanning">
+              <svg id="pauseIcon" style="width:15px;height:15px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+              <span id="pauseText">Pause</span>
+            </button>
+          </div>
+
           <div class="scanner-viewport">
             <video id="video" autoplay playsinline muted></video>
             <canvas id="canvas" style="display:none;"></canvas>
             <div class="scanner-overlay">
-              <div class="scanner-corner tl"></div><div class="scanner-corner tr"></div>
-              <div class="scanner-corner bl"></div><div class="scanner-corner br"></div>
-              <div class="scanner-line"></div>
+              <div class="sc tl" id="cornerTL"></div>
+              <div class="sc tr" id="cornerTR"></div>
+              <div class="sc bl" id="cornerBL"></div>
+              <div class="sc br" id="cornerBR"></div>
+              <div class="scanner-line" id="scanLine"></div>
             </div>
+            <div class="qr-flash" id="qrFlash"></div>
           </div>
-          <div id="scanStatus" class="scan-status">Initializing camera…</div>
-          <div style="margin-top:16px;text-align:center;">
-            <span style="font-size:12px;color:var(--gray-text);">Or enter manually:</span>
-            <div style="display:flex;gap:8px;margin-top:8px;">
-              <input type="text" id="manualInput" placeholder="Student number…" style="flex:1;padding:9px 12px;border:1.5px solid var(--gray-mid);border-radius:8px;font-size:14px;outline:none;" />
+
+          <div id="scanStatus" class="scan-status info">Initializing camera…</div>
+
+          <!-- Scanned count badge -->
+          <div id="scanCountBadge" style="display:none;text-align:center;margin-top:8px;">
+            <span style="font-size:12px;background:#eef2ff;color:#3730a3;font-weight:700;padding:4px 12px;border-radius:20px;">
+              <svg style="width:12px;height:12px;vertical-align:middle;margin-right:3px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <span id="scanCountText">0 students scanned this session</span>
+            </span>
+          </div>
+
+          <div style="margin-top:16px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+              <div style="flex:1;height:1px;background:var(--gray-mid);"></div>
+              <span style="font-size:11px;color:var(--gray-text);font-weight:600;letter-spacing:.06em;">OR ENTER MANUALLY</span>
+              <div style="flex:1;height:1px;background:var(--gray-mid);"></div>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <input type="text" id="manualInput" placeholder="Student number…" style="flex:1;padding:9px 12px;border:1.5px solid var(--gray-mid);border-radius:8px;font-size:14px;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#0d2b8e'" onblur="this.style.borderColor='var(--gray-mid)'" />
               <button class="btn btn-gold" style="padding:9px 18px;font-size:13px;" onclick="lookupStudent(document.getElementById('manualInput').value.trim())">Look Up</button>
             </div>
           </div>
         </div>
       </div>
 
+      <!-- Ballot panel -->
       <div id="ballotPanel" style="display:none;">
-
-        <!-- Student profile card shown after scan -->
-        <div id="studentCard" style="background:linear-gradient(135deg,#0d2b8e 0%,#1a4db5 100%);border-radius:20px;padding:28px 24px 24px;margin-bottom:20px;display:flex;align-items:center;gap:20px;box-shadow:0 8px 32px rgba(13,43,142,.25);position:relative;overflow:hidden;">
+        <div id="studentCard">
           <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.06);pointer-events:none;"></div>
           <div style="position:absolute;bottom:-20px;left:60px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.04);pointer-events:none;"></div>
-          <div id="studentPhotoWrap" style="flex-shrink:0;">
-            <!-- filled by JS -->
-          </div>
+          <div id="studentPhotoWrap" style="flex-shrink:0;"></div>
           <div style="flex:1;min-width:0;">
-            <div style="font-size:11px;font-weight:700;letter-spacing:.12em;color:rgba(255,255,255,.55);text-transform:uppercase;margin-bottom:4px;display:flex;align-items:center;gap:5px;"><svg style="width:13px;height:13px;color:#4caf50;flex-shrink:0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Student Verified</div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:.12em;color:rgba(255,255,255,.55);text-transform:uppercase;margin-bottom:4px;display:flex;align-items:center;gap:5px;">
+              <svg style="width:13px;height:13px;color:#4ade80;flex-shrink:0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Student Verified
+            </div>
             <div id="ballotStudentName" style="font-size:22px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:4px;word-break:break-word;"></div>
             <div id="ballotStudentNo" style="font-size:14px;font-weight:600;color:#f4c842;margin-bottom:2px;"></div>
             <div id="ballotStudentMeta" style="font-size:13px;color:rgba(255,255,255,.65);"></div>
@@ -86,6 +176,7 @@
             Back
           </button>
         </div>
+
         <div id="ballotForm">
           <div id="positions-list"></div>
           <div style="margin-top:32px;padding:20px;background:var(--gray-light);border-radius:12px;">
@@ -93,64 +184,162 @@
               <svg class="icon icon-sm" style="color:#e67e00;flex-shrink:0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
               <strong>Review your choices before submitting.</strong> You can only vote once.
             </p>
-            <button class="btn btn-gold" style="width:100%;font-size:16px;padding:14px;" id="submitBtn" onclick="submitVote()">Submit My Vote</button>
+            <button class="btn btn-gold" style="width:100%;font-size:16px;padding:14px;" id="submitBtn" onclick="confirmVote()">
+              <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Review &amp; Submit Vote
+            </button>
           </div>
         </div>
+
         <div id="successPanel" style="display:none;" class="success-panel">
           <div class="success-icon">
             <svg class="icon icon-2xl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--green);"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
           </div>
           <h2>Vote Recorded!</h2>
           <p id="successName"></p>
-          <p style="color:var(--gray-text);font-size:14px;margin-bottom:24px;">Your vote has been securely recorded. Thank you for participating!</p>
-          <button class="btn btn-gold" style="padding:12px 32px;" onclick="resetScanner()">Scan Next Student</button>
+          <p style="color:var(--gray-text);font-size:14px;margin-bottom:24px;">Vote has been securely recorded. Thank you for participating!</p>
+          <button class="btn btn-gold" style="padding:12px 32px;" onclick="resetScanner()">
+            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            Scan Next Student
+          </button>
         </div>
       </div>
 
     </div>
   </section>
 
+  <!-- Already-voted modal -->
+  <div id="avModal" style="display:none;" class="av-modal-bg" onclick="closeAvModal()">
+    <div class="av-modal" onclick="event.stopPropagation()">
+      <div class="av-icon-wrap">
+        <svg style="width:36px;height:36px;color:#f59e0b;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <h3 style="font-size:20px;font-weight:800;color:#0d2b8e;margin-bottom:8px;">Already Voted</h3>
+      <p id="avModalName" style="font-size:16px;font-weight:700;color:#374151;margin-bottom:6px;"></p>
+      <p style="font-size:13px;color:#6b7280;margin-bottom:24px;line-height:1.6;">This student has already cast their vote. Each student can only vote once.</p>
+      <button class="btn btn-gold" style="width:100%;padding:12px;" onclick="closeAvModal()">Got It — Scan Next</button>
+    </div>
+  </div>
+
+  <!-- Confirm vote modal -->
+  <div id="confirmModal" style="display:none;" class="confirm-modal-bg">
+    <div class="confirm-modal">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+        <div style="width:44px;height:44px;border-radius:50%;background:#eef2ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg style="width:22px;height:22px;color:#0d2b8e;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><polyline points="9 11 12 14 22 4"/></svg>
+        </div>
+        <div>
+          <div style="font-size:17px;font-weight:800;color:#0d2b8e;">Confirm Your Vote</div>
+          <div style="font-size:12px;color:#6b7280;" id="confirmStudentLabel"></div>
+        </div>
+      </div>
+      <p style="font-size:13px;color:#6b7280;margin-bottom:16px;">Please review your choices carefully. <strong style="color:#dc2626;">This cannot be undone.</strong></p>
+      <div id="confirmChoicesList" style="margin-bottom:20px;"></div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-outline" style="flex:1;padding:12px;" onclick="closeConfirmModal()">Go Back</button>
+        <button class="btn btn-gold" style="flex:1;padding:12px;font-weight:700;" id="confirmSubmitBtn" onclick="submitVote()">
+          <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Confirm &amp; Submit
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="confettiWrap" class="confetti-wrap"></div>
+
   <footer>
     <div class="footer-inner">
       <div class="footer-brand"><h3>Don Bosco Training Center</h3><p>Mati City, Davao Oriental — Officers Election 2026.</p></div>
-      
     </div>
     <div class="footer-bottom">&copy; 2026 Don Bosco Training Center — Officers Election, Mati City.</div>
   </footer>
 
   <script>
-    const toggle = document.getElementById('navToggle');
-    const links = document.getElementById('navLinks');
-    toggle.addEventListener('click', () => links.classList.toggle('open'));
+    // ── Nav toggle ──
+    document.getElementById('navToggle').addEventListener('click', () =>
+      document.getElementById('navLinks').classList.toggle('open'));
 
-    const ICON_CHECK_SM = `<svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 13 4 16"/></svg>`;
-    const ICON_X_CIRCLE = `<svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
-    const ICON_WARN = `<svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+    // ── Constants ──
+    const ICON_CHECK_SM = `<svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
 
-    let scanning = false, scanCooldown = false, currentStudent = null, candidates = [], stream = null;
+    // ── State ──
+    let scanning = false, scanPaused = false, scanCooldown = false;
+    let currentStudent = null, candidates = [], stream = null;
+    let torchOn = false, facingMode = 'environment';
+    let sessionScanCount = 0;
+
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
-    const scanStatus = document.getElementById('scanStatus');
 
+    // ── Audio beep (Web Audio API — no external lib) ──
+    function playBeep(type = 'success') {
+      try {
+        const ac = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ac.createOscillator();
+        const gain = ac.createGain();
+        osc.connect(gain); gain.connect(ac.destination);
+        if (type === 'success') {
+          osc.frequency.setValueAtTime(880, ac.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(1320, ac.currentTime + 0.12);
+          gain.gain.setValueAtTime(0.18, ac.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.22);
+          osc.start(ac.currentTime); osc.stop(ac.currentTime + 0.22);
+        } else if (type === 'warn') {
+          osc.frequency.setValueAtTime(440, ac.currentTime);
+          gain.gain.setValueAtTime(0.15, ac.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.3);
+          osc.start(ac.currentTime); osc.stop(ac.currentTime + 0.3);
+        } else { // error
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(200, ac.currentTime);
+          gain.gain.setValueAtTime(0.12, ac.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.25);
+          osc.start(ac.currentTime); osc.stop(ac.currentTime + 0.25);
+        }
+      } catch(e) {}
+    }
+
+    function vibrate(pattern) {
+      try { if (navigator.vibrate) navigator.vibrate(pattern); } catch(e) {}
+    }
+
+    // ── Status helper ──
+    function setStatus(msg, type = 'info') {
+      const el = document.getElementById('scanStatus');
+      el.className = 'scan-status ' + type;
+      el.innerHTML = msg;
+    }
+
+    // ── Flash overlay ──
+    function flashViewport(color = 'success') {
+      const flash = document.getElementById('qrFlash');
+      const corners = ['cornerTL','cornerTR','cornerBL','cornerBR'].map(id => document.getElementById(id));
+      flash.style.background = color === 'success' ? 'rgba(72,199,120,.45)' : 'rgba(239,68,68,.35)';
+      flash.classList.add('active');
+      corners.forEach(c => { c.classList.add('detected'); c.style.borderColor = color === 'success' ? '#48c778' : '#ef4444'; });
+      setTimeout(() => {
+        flash.classList.remove('active');
+        corners.forEach(c => { c.classList.remove('detected'); c.style.borderColor = ''; });
+      }, 350);
+    }
+
+    // ── Camera ──
     async function startCamera() {
-      scanStatus.innerHTML = 'Starting camera…';
-      scanStatus.style.color = '#1a4db5';
+      setStatus('Starting camera…', 'info');
       const old = document.getElementById('retryBtn');
       if (old) old.remove();
+      torchOn = false;
+      document.getElementById('torchBtn').classList.remove('active');
 
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        showCameraError('Camera not supported on this browser. Use manual entry below.');
-        return;
+      if (!navigator.mediaDevices?.getUserMedia) {
+        showCameraError('Camera not supported on this browser. Use manual entry below.'); return;
       }
-
-      // Stop any existing stream
       if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
 
-      // Try rear camera first, then any camera
       const constraints = [
-        { video: { facingMode: { exact: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } },
-        { video: { facingMode: 'environment' } },
+        { video: { facingMode: { exact: facingMode }, width: { ideal: 1280 }, height: { ideal: 720 } } },
+        { video: { facingMode: facingMode } },
         { video: true },
       ];
 
@@ -161,18 +350,19 @@
           video.srcObject = stream;
           video.setAttribute('playsinline', true);
           await video.play();
-          // Wait for enough video data
           await new Promise((resolve, reject) => {
             if (video.readyState >= 3) { resolve(); return; }
-            video.onloadeddata = resolve;
-            video.onerror = reject;
-            setTimeout(resolve, 3000); // fallback timeout
+            video.onloadeddata = resolve; video.onerror = reject;
+            setTimeout(resolve, 3000);
           });
           canvas.width = video.videoWidth || 640;
           canvas.height = video.videoHeight || 480;
-          scanning = true;
-          scanStatus.innerHTML = '<svg style="width:14px;height:14px;vertical-align:middle;margin-right:5px;color:#2e7d32;" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>Ready — point camera at a QR code';
-          scanStatus.style.color = '#2e7d32';
+          scanning = true; scanPaused = false;
+          setStatus('<svg style="width:14px;height:14px;vertical-align:middle;margin-right:5px;color:#1e7e34;" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>Ready — point camera at a QR code', 'ready');
+          // Enable torch button if track supports it
+          const track = stream.getVideoTracks()[0];
+          const caps = track.getCapabilities?.() || {};
+          document.getElementById('torchBtn').disabled = !caps.torch;
           tick();
           return;
         } catch (e) {
@@ -180,57 +370,105 @@
           if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
         }
       }
-
-      const msg = lastErr && lastErr.name === 'NotAllowedError'
-        ? 'Camera permission denied. Tap the lock icon in your browser address bar and allow camera access, then retry.'
-        : 'Could not start camera (' + (lastErr && lastErr.message || 'unknown') + '). Use manual entry below.';
+      const msg = lastErr?.name === 'NotAllowedError'
+        ? 'Camera permission denied. Tap the lock icon in your address bar and allow camera, then retry.'
+        : 'Could not start camera (' + (lastErr?.message || 'unknown') + '). Use manual entry below.';
       showCameraError(msg);
     }
 
     function showCameraError(msg) {
-      scanStatus.innerHTML = '<svg style="width:14px;height:14px;vertical-align:middle;margin-right:5px;color:#c53030;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>' + msg;
-      scanStatus.style.color = '#c53030';
+      setStatus('<svg style="width:14px;height:14px;vertical-align:middle;margin-right:5px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>' + msg, 'error');
       const btn = document.createElement('button');
-      btn.id = 'retryBtn';
-      btn.className = 'btn btn-gold';
+      btn.id = 'retryBtn'; btn.className = 'btn btn-gold';
       btn.style.cssText = 'margin-top:12px;padding:9px 22px;font-size:13px;display:block;margin-left:auto;margin-right:auto;';
       btn.innerHTML = '<svg style="width:13px;height:13px;vertical-align:middle;margin-right:5px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Retry Camera';
       btn.onclick = startCamera;
-      scanStatus.parentNode.insertBefore(btn, scanStatus.nextSibling);
+      document.getElementById('scanStatus').after(btn);
     }
 
+    async function toggleTorch() {
+      if (!stream) return;
+      const track = stream.getVideoTracks()[0];
+      if (!track) return;
+      try {
+        torchOn = !torchOn;
+        await track.applyConstraints({ advanced: [{ torch: torchOn }] });
+        const btn = document.getElementById('torchBtn');
+        btn.classList.toggle('active', torchOn);
+        btn.querySelector('svg').style.color = torchOn ? '#fff' : '';
+      } catch(e) { torchOn = !torchOn; }
+    }
+
+    function flipCamera() {
+      facingMode = facingMode === 'environment' ? 'user' : 'environment';
+      document.getElementById('flipBtn').classList.toggle('active', facingMode === 'user');
+      startCamera();
+    }
+
+    function togglePause() {
+      scanPaused = !scanPaused;
+      const icon = document.getElementById('pauseIcon');
+      const text = document.getElementById('pauseText');
+      const btn = document.getElementById('pauseBtn');
+      if (scanPaused) {
+        icon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+        text.textContent = 'Resume';
+        btn.classList.add('active');
+        setStatus('Scanning paused. Tap Resume to continue.', 'warn');
+      } else {
+        icon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+        text.textContent = 'Pause';
+        btn.classList.remove('active');
+        setStatus('<svg style="width:14px;height:14px;vertical-align:middle;margin-right:5px;color:#1e7e34;" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>Ready — point camera at a QR code', 'ready');
+      }
+    }
+
+    // ── Scan loop ──
     function tick() {
-      if (!scanning) return;
+      if (!scanning || scanPaused) { if (scanning) requestAnimationFrame(tick); return; }
       if (video.readyState >= 3 && video.videoWidth > 0) {
-        if (canvas.width !== video.videoWidth) {
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-        }
+        if (canvas.width !== video.videoWidth) { canvas.width = video.videoWidth; canvas.height = video.videoHeight; }
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'attemptBoth' });
-        if (code && code.data && !scanCooldown) {
+        if (code?.data && !scanCooldown) {
           scanCooldown = true;
+          flashViewport('success');
+          vibrate([60, 30, 60]);
+          playBeep('success');
           lookupStudent(code.data.trim());
-          setTimeout(() => { scanCooldown = false; }, 2500);
+          setTimeout(() => { scanCooldown = false; }, 3000);
         }
       }
       requestAnimationFrame(tick);
     }
 
+    // ── Student lookup ──
     async function lookupStudent(studentNo) {
       if (!studentNo) return;
-      scanStatus.innerHTML = 'Looking up: ' + studentNo + '…'; scanStatus.style.color = '#1a4db5';
+      setStatus('Looking up: ' + studentNo + '…', 'info');
       try {
         const res = await fetch('/api/students/' + encodeURIComponent(studentNo));
-        if (res.status === 404) { scanStatus.innerHTML = ICON_X_CIRCLE + ' Student not found: ' + studentNo; scanStatus.style.color = '#c53030'; return; }
-        if (!res.ok) throw new Error();
+        if (res.status === 404) {
+          playBeep('error'); vibrate([200]);
+          flashViewport('error');
+          setStatus('<svg style="width:14px;height:14px;vertical-align:middle;margin-right:5px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>Student not found: ' + studentNo, 'error');
+          return;
+        }
+        if (!res.ok) throw new Error('Server error');
         const student = await res.json();
-        if (student.hasVoted) { scanStatus.innerHTML = ICON_WARN + ' ' + student.name + ' has already voted!'; scanStatus.style.color = '#e67e00'; return; }
+        if (student.hasVoted) {
+          playBeep('warn'); vibrate([100, 50, 100]);
+          showAlreadyVotedModal(student);
+          return;
+        }
         currentStudent = student;
         await loadCandidates();
         showBallot(student);
-      } catch (e) { scanStatus.innerHTML = ICON_X_CIRCLE + ' Error looking up student. Try again.'; scanStatus.style.color = '#c53030'; }
+      } catch (e) {
+        playBeep('error');
+        setStatus('<svg style="width:14px;height:14px;vertical-align:middle;margin-right:5px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>Error looking up student. Try again.', 'error');
+      }
     }
 
     async function loadCandidates() {
@@ -238,11 +476,23 @@
       candidates = await res.json();
     }
 
+    // ── Already voted modal ──
+    function showAlreadyVotedModal(student) {
+      document.getElementById('avModalName').textContent = student.name + ' — ' + student.studentNo;
+      document.getElementById('avModal').style.display = 'flex';
+    }
+    function closeAvModal() {
+      document.getElementById('avModal').style.display = 'none';
+      if (scanning && !scanPaused) setStatus('<svg style="width:14px;height:14px;vertical-align:middle;margin-right:5px;color:#1e7e34;" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>Ready — point camera at a QR code', 'ready');
+    }
+
+    // ── Candidate avatar ──
     function candidateAvatar(c) {
       if (c.photoData) return `<img src="${c.photoData}" class="cand-photo" alt="${c.name}" />`;
       return `<div class="candidate-avatar">${c.name.charAt(0)}</div>`;
     }
 
+    // ── Show ballot ──
     function showBallot(student) {
       scanning = false;
       document.getElementById('scanPanel').style.display = 'none';
@@ -250,7 +500,6 @@
       document.getElementById('successPanel').style.display = 'none';
       document.getElementById('ballotForm').style.display = 'block';
 
-      // Populate student card
       document.getElementById('ballotStudentName').textContent = student.name;
       document.getElementById('ballotStudentNo').textContent = student.studentNo;
       document.getElementById('ballotStudentMeta').textContent = student.yearLevel + ' — ' + student.section;
@@ -266,53 +515,132 @@
       const positions = {};
       for (const c of candidates) { if (!positions[c.position]) positions[c.position] = []; positions[c.position].push(c); }
       const posOrder = ['President','Vice President','Secretary','Treasurer','Auditor','Public Relations Officer'];
-      const sorted = Object.keys(positions).sort((a, b) => { const ai = posOrder.indexOf(a), bi = posOrder.indexOf(b); if (ai === -1 && bi === -1) return a.localeCompare(b); if (ai === -1) return 1; if (bi === -1) return -1; return ai - bi; });
+      const sorted = Object.keys(positions).sort((a, b) => { const ai = posOrder.indexOf(a), bi = posOrder.indexOf(b); if (ai===-1&&bi===-1) return a.localeCompare(b); if (ai===-1) return 1; if (bi===-1) return -1; return ai-bi; });
 
       let html = '';
       for (const pos of sorted) {
         html += `<div class="ballot-position"><div class="ballot-pos-title">${pos}</div><div class="ballot-candidates">`;
         for (const c of positions[pos]) {
-          html += `<label class="candidate-option"><input type="radio" name="pos_${pos.replace(/\s+/g,'_')}" value="${c.id}" data-position="${pos}" /><div class="candidate-option-inner">${candidateAvatar(c)}<div class="candidate-details"><div class="candidate-name">${c.name}</div><div class="candidate-meta">${c.yearLevel} — ${c.section}</div>${c.motto ? `<div class="candidate-motto">"${c.motto}"</div>` : ''}</div><div class="candidate-check">${ICON_CHECK_SM}</div></div></label>`;
+          html += `<label class="candidate-option"><input type="radio" name="pos_${pos.replace(/\s+/g,'_')}" value="${c.id}" data-position="${pos}" data-name="${c.name}" /><div class="candidate-option-inner">${candidateAvatar(c)}<div class="candidate-details"><div class="candidate-name">${c.name}</div><div class="candidate-meta">${c.yearLevel} — ${c.section}</div>${c.motto?`<div class="candidate-motto">"${c.motto}"</div>`:''}</div><div class="candidate-check">${ICON_CHECK_SM}</div></div></label>`;
         }
         html += '</div></div>';
       }
-      if (sorted.length === 0) html = '<div class="loading-msg" style="padding:32px;">No candidates found. Please add candidates in Admin.</div>';
+      if (sorted.length === 0) html = '<div class="loading-msg" style="padding:32px;">No candidates found.</div>';
       document.getElementById('positions-list').innerHTML = html;
     }
 
+    // ── Confirm vote modal ──
+    function confirmVote() {
+      const radios = document.querySelectorAll('#positions-list input[type=radio]:checked');
+      const positions = [...new Set(candidates.map(c => c.position))];
+      if (radios.length < positions.length) {
+        alert('Please select one candidate for each position before submitting.'); return;
+      }
+      // Build choices list
+      let html = '';
+      for (const r of radios) {
+        html += `<div class="confirm-choice">
+          <div style="width:36px;height:36px;border-radius:50%;background:#eef2ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg style="width:16px;height:16px;color:#0d2b8e;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div><div class="confirm-pos">${r.dataset.position}</div><div class="confirm-name">${r.dataset.name}</div></div>
+        </div>`;
+      }
+      document.getElementById('confirmChoicesList').innerHTML = html;
+      document.getElementById('confirmStudentLabel').textContent = currentStudent.name + ' · ' + currentStudent.studentNo;
+      document.getElementById('confirmModal').style.display = 'flex';
+    }
+    function closeConfirmModal() {
+      document.getElementById('confirmModal').style.display = 'none';
+    }
+
+    // ── Submit vote ──
     async function submitVote() {
       const radios = document.querySelectorAll('#positions-list input[type=radio]:checked');
       const votes = [];
       for (const r of radios) votes.push({ candidateId: parseInt(r.value), position: r.dataset.position });
-      const positions = [...new Set(candidates.map(c => c.position))];
-      if (votes.length < positions.length) { alert('Please select one candidate for each position before submitting.'); return; }
-      const btn = document.getElementById('submitBtn'); btn.disabled = true; btn.textContent = 'Submitting…';
+
+      const btn = document.getElementById('confirmSubmitBtn');
+      btn.disabled = true; btn.innerHTML = '<svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48 2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48 2.83-2.83"/></svg> Submitting…';
+
       try {
-        const res = await fetch('/api/votes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ studentNo: currentStudent.studentNo, votes }) });
+        const res = await fetch('/api/votes', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ studentNo: currentStudent.studentNo, votes })
+        });
         const data = await res.json();
-        if (!res.ok) { alert(data.error || 'Failed to submit vote.'); btn.disabled = false; btn.textContent = 'Submit My Vote'; return; }
+        if (!res.ok) {
+          btn.disabled = false; btn.innerHTML = '<svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Confirm &amp; Submit';
+          alert(data.error || 'Failed to submit vote.');
+          return;
+        }
+        closeConfirmModal();
+        sessionScanCount++;
+        updateScanCount();
         document.getElementById('ballotForm').style.display = 'none';
         document.getElementById('successPanel').style.display = 'block';
         document.getElementById('successName').textContent = currentStudent.name + ' — ' + currentStudent.studentNo;
-      } catch (e) { alert('Network error. Please try again.'); btn.disabled = false; btn.textContent = 'Submit My Vote'; }
+        playBeep('success'); vibrate([80, 40, 80, 40, 120]);
+        launchConfetti();
+      } catch (e) {
+        btn.disabled = false; btn.innerHTML = '<svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Confirm &amp; Submit';
+        alert('Network error. Please try again.');
+      }
     }
 
+    // ── Session count ──
+    function updateScanCount() {
+      const badge = document.getElementById('scanCountBadge');
+      const text = document.getElementById('scanCountText');
+      badge.style.display = 'block';
+      text.textContent = sessionScanCount + ' student' + (sessionScanCount !== 1 ? 's' : '') + ' voted this session';
+    }
+
+    // ── Confetti ──
+    function launchConfetti() {
+      const wrap = document.getElementById('confettiWrap');
+      const colors = ['#f4c842','#0d2b8e','#4ade80','#60a5fa','#f87171','#a78bfa'];
+      for (let i = 0; i < 56; i++) {
+        const el = document.createElement('div');
+        el.className = 'confetti-piece';
+        el.style.left = Math.random() * 100 + 'vw';
+        el.style.background = colors[Math.floor(Math.random() * colors.length)];
+        el.style.width = (6 + Math.random() * 8) + 'px';
+        el.style.height = (6 + Math.random() * 8) + 'px';
+        el.style.animationDuration = (1.4 + Math.random() * 1.4) + 's';
+        el.style.animationDelay = (Math.random() * 0.5) + 's';
+        el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+        wrap.appendChild(el);
+        el.addEventListener('animationend', () => el.remove());
+      }
+    }
+
+    // ── Reset scanner ──
     function resetScanner() {
       currentStudent = null;
       document.getElementById('scanPanel').style.display = 'block';
       document.getElementById('ballotPanel').style.display = 'none';
       document.getElementById('manualInput').value = '';
-      scanStatus.innerHTML = 'Ready — waiting for QR code…'; scanStatus.style.color = '#2e7d32';
-      scanning = true; tick();
+      scanning = false;
+      startCamera(); // always restart camera stream fully
     }
 
+    // ── Manual input enter key ──
+    document.getElementById('manualInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        const val = document.getElementById('manualInput').value.trim();
+        if (val) { lookupStudent(val); document.getElementById('manualInput').value = ''; }
+      }
+    });
+
+    // ── Init ──
     async function init() {
       try {
         const res = await fetch('/api/settings/voting-status');
         const { votingOpen } = await res.json();
         if (!votingOpen) {
           document.getElementById('scanPanel').innerHTML = `
-            <div style="text-align:center;padding:60px 24px;background:#fff;border-radius:20px;box-shadow:0 4px 24px rgba(0,0,0,.08);">
+            <div class="voting-closed-card">
               <div style="width:72px;height:72px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
                 <svg style="width:36px;height:36px;color:#dc2626;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
               </div>
