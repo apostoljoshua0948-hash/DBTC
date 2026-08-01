@@ -6,6 +6,7 @@ import votesRouter from "./votes";
 import authRouter from "./auth";
 import adminsRouter from "./admins";
 import settingsRouter from "./settings";
+import commentsRouter from "./comments";
 
 const router: IRouter = Router();
 
