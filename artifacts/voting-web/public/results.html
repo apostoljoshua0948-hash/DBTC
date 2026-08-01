@@ -46,6 +46,7 @@
       <ul class="nav-links" id="navLinks">
         <li><a href="/">Home</a></li>
         <li><a href="/myqr">My QR Code</a></li>
+        <li><a href="/candidates">Candidates</a></li>
         <li><a href="/scan">Vote</a></li>
         <li><a href="/results" class="active">Results</a></li>
         <li><a href="/admin">Admin</a></li>
@@ -67,7 +68,11 @@
         <div class="rsb-item"><span id="rVoted">—</span><label>Votes Cast</label></div>
         <div class="rsb-item"><span id="rTotal">—</span><label>Registered</label></div>
         <div class="rsb-item"><span id="rPct">—</span><label>Turnout</label></div>
-        <div class="rsb-refresh">
+        <div class="rsb-refresh" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <button class="btn-print" onclick="printResults()">
+            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Print / Save PDF
+          </button>
           <div class="refresh-ring-wrap">
             <svg class="ring-svg" viewBox="0 0 28 28">
               <circle class="ring-bg" cx="14" cy="14" r="11"/>
@@ -228,6 +233,8 @@
       startCountdown();
       autoTimer = setInterval(() => { loadResults(); startCountdown(); }, INTERVAL * 1000);
     }
+
+    function printResults() { window.print(); }
 
     // Boot
     loadResults();

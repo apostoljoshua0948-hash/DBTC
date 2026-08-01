@@ -10,6 +10,7 @@ const CLEAN_URL_MAP: Record<string, string> = {
   "/myqr":           "/myqr.html",
   "/scan":           "/scan.html",
   "/results":        "/results.html",
+  "/candidates":     "/candidates.html",
   "/admin":          "/admin.html",
   "/admin-login":    "/admin-login.html",
   "/admin-register": "/admin-register.html",

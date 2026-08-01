@@ -1,6 +1,6 @@
-# [Project name]
+# Don Bosco TC — Officers Election 2026
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A full-stack digital voting system for the Supreme Student Council election of Don Bosco Training Center, Mati City. Students get a QR code, an election officer scans it at a voting booth, and results update live.
 
 ## Run & Operate
 

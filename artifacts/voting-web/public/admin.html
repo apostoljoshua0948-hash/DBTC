@@ -55,6 +55,7 @@
       <ul class="nav-links" id="navLinks">
         <li><a href="/">Home</a></li>
         <li><a href="/myqr">My QR Code</a></li>
+        <li><a href="/candidates">Candidates</a></li>
         <li><a href="/scan">Vote</a></li>
         <li><a href="/results">Results</a></li>
         <li><a href="/admin" class="active">Admin</a></li>
@@ -85,16 +86,34 @@
         <span id="adminWelcome" style="color:rgba(255,255,255,.7);font-size:13px;"></span>
         <button class="btn btn-outline" style="font-size:12px;padding:6px 16px;border-color:rgba(255,255,255,.4);" onclick="logout()">Log Out</button>
       </div>
-      <!-- Election toggle -->
-      <div style="margin-top:20px;background:rgba(255,255,255,.1);border-radius:16px;padding:16px 24px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:center;">
-        <div style="text-align:left;">
-          <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:2px;">Voting Status</div>
-          <div id="votingStatusLabel" style="font-size:12px;color:rgba(255,255,255,.6);">Checking…</div>
+      <!-- Election toggle + export -->
+      <div style="margin-top:20px;display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:stretch;">
+        <div style="background:rgba(255,255,255,.1);border-radius:16px;padding:16px 24px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:center;">
+          <div style="text-align:left;">
+            <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:2px;">Voting Status</div>
+            <div id="votingStatusLabel" style="font-size:12px;color:rgba(255,255,255,.6);">Checking…</div>
+          </div>
+          <button id="votingToggleBtn" onclick="toggleVoting()" style="display:flex;align-items:center;gap:8px;padding:10px 22px;border-radius:10px;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .2s,color .2s;">
+            <svg id="votingToggleIcon" class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+            <span id="votingToggleText">…</span>
+          </button>
         </div>
-        <button id="votingToggleBtn" onclick="toggleVoting()" style="display:flex;align-items:center;gap:8px;padding:10px 22px;border-radius:10px;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .2s,color .2s;">
-          <svg id="votingToggleIcon" class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-          <span id="votingToggleText">…</span>
-        </button>
+        <div style="background:rgba(255,255,255,.1);border-radius:16px;padding:16px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;">
+          <div style="text-align:left;">
+            <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:2px;">Export</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.6);">Download official records</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button onclick="exportResultsCsv()" style="display:flex;align-items:center;gap:6px;padding:9px 16px;border-radius:10px;border:none;background:var(--gold);color:var(--blue-dark);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">
+              <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Results CSV
+            </button>
+            <button onclick="exportStudentsCsv()" style="display:flex;align-items:center;gap:6px;padding:9px 16px;border-radius:10px;border:none;background:rgba(255,255,255,.15);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border:1px solid rgba(255,255,255,.25);">
+              <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Students CSV
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -118,6 +137,29 @@
 
         <!-- ── STUDENTS TAB ── -->
         <div id="tab-students">
+
+          <!-- CSV Import -->
+          <div class="admin-panel" style="margin-bottom:16px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;">
+              <h3 class="admin-panel-title" style="margin-bottom:0;">Bulk Import Students via CSV</h3>
+              <a href="#" onclick="downloadCsvTemplate(); return false;" style="font-size:12px;color:var(--blue);font-weight:600;display:flex;align-items:center;gap:4px;">
+                <svg class="icon icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download Template
+              </a>
+            </div>
+            <p style="font-size:12px;color:var(--gray-text);margin-bottom:12px;">CSV columns: <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:11px;">studentNo, name, yearLevel, section</code></p>
+            <div class="csv-drop-area" id="csvDropArea" onclick="document.getElementById('csvFileInput').click()">
+              <svg class="csv-drop-icon icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="12" y2="12"/><line x1="15" y1="15" x2="12" y2="12"/></svg>
+              <div class="csv-drop-text">
+                <strong>Click to upload a CSV file</strong>
+                One student per row — no header required (or include a header row, it'll be skipped).
+              </div>
+            </div>
+            <input type="file" id="csvFileInput" accept=".csv,text/csv" style="display:none;" onchange="handleCsvFile(this)" />
+            <div id="csvPreview" style="display:none;margin-top:14px;"></div>
+            <div id="csvImportErr" class="error-msg" style="display:none;margin-top:10px;"></div>
+          </div>
+
           <div class="admin-panel">
             <h3 class="admin-panel-title">Register a Student</h3>
             <div class="admin-form-grid">
@@ -555,6 +597,126 @@
       if (!confirm(`Remove admin account "${username}"?`)) return;
       await fetch('/api/admins/' + id, { method: 'DELETE', credentials: 'include' });
       loadAdmins();
+    }
+
+    // ── CSV TEMPLATE DOWNLOAD ──
+    function downloadCsvTemplate() {
+      const rows = ['studentNo,name,yearLevel,section','DBTC-2026-001,Juan dela Cruz,Grade 11,STEM A','DBTC-2026-002,Maria Santos,Grade 12,HUMSS B'];
+      const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+      a.download = 'students-template.csv'; a.click();
+    }
+
+    // ── CSV IMPORT ──
+    function handleCsvFile(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const text = e.target.result;
+        const lines = text.split(/\r?\n/).filter(l => l.trim());
+        const rows = [];
+        const errEl = document.getElementById('csvImportErr');
+        errEl.style.display = 'none';
+        for (let i = 0; i < lines.length; i++) {
+          const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g,''));
+          // Skip header row
+          if (i === 0 && /studentno/i.test(cols[0])) continue;
+          if (cols.length < 4) { errEl.textContent = `Row ${i+1}: expected 4 columns (studentNo, name, yearLevel, section), got ${cols.length}.`; errEl.style.display='block'; return; }
+          rows.push({ studentNo: cols[0], name: cols[1], yearLevel: cols[2], section: cols[3] });
+        }
+        if (!rows.length) { errEl.textContent = 'No student rows found in the file.'; errEl.style.display='block'; return; }
+
+        let html = `<div style="background:var(--gray-light);border-radius:10px;padding:14px 16px;margin-bottom:12px;">
+          <div style="font-size:13px;font-weight:700;color:var(--blue-dark);margin-bottom:6px;">Preview — ${rows.length} student${rows.length!==1?'s':''} found</div>
+          <div style="font-size:12px;color:var(--gray-text);margin-bottom:10px;">First 5 rows shown:</div>`;
+        html += '<table style="width:100%;font-size:12px;border-collapse:collapse;"><thead><tr>';
+        ['Student No.','Name','Year Level','Section'].forEach(h => html += `<th style="text-align:left;padding:4px 8px;border-bottom:1px solid var(--gray-mid);color:var(--gray-text);font-weight:700;">${h}</th>`);
+        html += '</tr></thead><tbody>';
+        rows.slice(0,5).forEach(r => {
+          html += `<tr><td style="padding:4px 8px;border-bottom:1px solid var(--gray-mid);"><code style="font-size:11px;">${r.studentNo}</code></td><td style="padding:4px 8px;border-bottom:1px solid var(--gray-mid);">${r.name}</td><td style="padding:4px 8px;border-bottom:1px solid var(--gray-mid);">${r.yearLevel}</td><td style="padding:4px 8px;border-bottom:1px solid var(--gray-mid);">${r.section}</td></tr>`;
+        });
+        if (rows.length > 5) html += `<tr><td colspan="4" style="padding:4px 8px;color:var(--gray-text);font-size:11px;">…and ${rows.length-5} more</td></tr>`;
+        html += `</tbody></table></div>`;
+        html += `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <button class="btn btn-gold" id="csvImportBtn" onclick="importCsvRows()" style="font-size:13px;padding:9px 20px;">Import ${rows.length} Student${rows.length!==1?'s':''}</button>
+          <button onclick="cancelCsvImport()" style="background:none;border:1.5px solid var(--gray-mid);border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;font-family:inherit;">Cancel</button>
+          <div id="csvProgress" style="font-size:12px;color:var(--gray-text);"></div>
+        </div>`;
+        document.getElementById('csvPreview').innerHTML = html;
+        document.getElementById('csvPreview').style.display = 'block';
+        document.getElementById('csvPreview')._rows = rows;
+      };
+      reader.readAsText(file);
+    }
+
+    function cancelCsvImport() {
+      document.getElementById('csvPreview').style.display = 'none';
+      document.getElementById('csvPreview').innerHTML = '';
+      document.getElementById('csvFileInput').value = '';
+    }
+
+    async function importCsvRows() {
+      const preview = document.getElementById('csvPreview');
+      const rows = preview._rows;
+      if (!rows || !rows.length) return;
+      const btn = document.getElementById('csvImportBtn');
+      btn.disabled = true;
+      const progress = document.getElementById('csvProgress');
+      let ok = 0, skipped = 0, failed = 0;
+      for (let i = 0; i < rows.length; i++) {
+        progress.textContent = `Importing ${i+1} of ${rows.length}…`;
+        try {
+          const res = await fetch('/api/students', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            credentials: 'include', body: JSON.stringify(rows[i])
+          });
+          if (res.ok) ok++;
+          else { const d = await res.json(); if (d.error?.toLowerCase().includes('already')) skipped++; else failed++; }
+        } catch(e) { failed++; }
+      }
+      progress.innerHTML = `<span style="color:var(--green);font-weight:700;">✓ ${ok} imported</span>${skipped?' · '+skipped+' skipped (already exist)':''}${failed?' · <span style="color:var(--red);">'+failed+' failed</span>':''}`;
+      btn.textContent = 'Done!'; btn.disabled = false;
+      loadStudents();
+    }
+
+    // ── EXPORT RESULTS CSV ──
+    async function exportResultsCsv() {
+      try {
+        const res = await fetch('/api/results');
+        const data = await res.json();
+        const rows = [['Position','Rank','Candidate','Votes','% of Position Votes']];
+        const grouped = {};
+        for (const r of data.results) { if (!grouped[r.position]) grouped[r.position] = []; grouped[r.position].push(r); }
+        for (const [pos, cands] of Object.entries(grouped)) {
+          const tot = cands.reduce((s,c) => s + c.voteCount, 0);
+          cands.forEach((c, i) => {
+            const pct = tot > 0 ? ((c.voteCount / tot) * 100).toFixed(1) : '0.0';
+            rows.push([pos, i+1, c.candidateName, c.voteCount, pct+'%']);
+          });
+        }
+        rows.push([]);
+        rows.push(['Total Voted', data.totalVoted, '', '', '']);
+        rows.push(['Total Students', data.totalStudents, '', '', '']);
+        const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = 'election-results-' + new Date().toISOString().slice(0,10) + '.csv'; a.click();
+      } catch(e) { alert('Failed to export results.'); }
+    }
+
+    // ── EXPORT STUDENTS CSV ──
+    async function exportStudentsCsv() {
+      try {
+        const res = await fetch('/api/students', { credentials: 'include' });
+        const students = await res.json();
+        const rows = [['studentNo','name','yearLevel','section','hasVoted']];
+        students.forEach(s => rows.push([s.studentNo, s.name, s.yearLevel, s.section, s.hasVoted ? 'Yes' : 'No']));
+        const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = 'students-' + new Date().toISOString().slice(0,10) + '.csv'; a.click();
+      } catch(e) { alert('Failed to export students.'); }
     }
 
     checkAuth();

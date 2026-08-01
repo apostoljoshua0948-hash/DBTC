@@ -8,6 +8,9 @@
 </head>
 <body>
 
+  <!-- Voting status ribbon -->
+  <div id="statusRibbon" style="display:none;"></div>
+
   <nav class="navbar">
     <div class="nav-inner">
       <div class="nav-brand">
@@ -19,10 +22,11 @@
       </div>
       <ul class="nav-links" id="navLinks">
         <li><a href="/" class="active">Home</a></li>
-        <li><a href="/myqr.html">My QR Code</a></li>
-        <li><a href="/scan.html">Vote</a></li>
-        <li><a href="/results.html">Results</a></li>
-        <li><a href="/admin.html">Admin</a></li>
+        <li><a href="/myqr">My QR Code</a></li>
+        <li><a href="/candidates">Candidates</a></li>
+        <li><a href="/scan">Vote</a></li>
+        <li><a href="/results">Results</a></li>
+        <li><a href="/admin">Admin</a></li>
       </ul>
       <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
         <span></span><span></span><span></span>
@@ -38,8 +42,8 @@
     <h1>Vote for Your<br><span>Student Officers</span></h1>
     <p class="hero-sub">Show your QR code at the voting station to cast your vote for the Supreme Student Council officers of Don Bosco Training Center, Mati City.</p>
     <div class="hero-actions">
-      <a href="/myqr.html" class="btn btn-gold">Get My QR Code</a>
-      <a href="/scan.html" class="btn btn-outline">Voting Booth</a>
+      <a href="/myqr" class="btn btn-gold">Get My QR Code</a>
+      <a href="/scan" class="btn btn-outline">Voting Booth</a>
     </div>
   </section>
 
@@ -69,16 +73,16 @@
       <div class="section-label">How It Works</div>
       <h2 class="section-title">Voting in 3 Simple Steps</h2>
       <div class="steps-grid">
-        <div class="step-card">
+        <div class="step-card reveal">
           <div class="step-num">1</div>
           <div class="step-icon">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
           </div>
           <h3>Get Your QR Code</h3>
           <p>Enter your student number in the <strong>My QR Code</strong> page to display your unique voter QR code.</p>
-          <a href="/myqr.html" class="btn btn-gold" style="margin-top:16px; display:inline-flex; font-size:13px; padding:8px 20px;">Open My QR</a>
+          <a href="/myqr" class="btn btn-gold" style="margin-top:16px; display:inline-flex; font-size:13px; padding:8px 20px;">Open My QR</a>
         </div>
-        <div class="step-card">
+        <div class="step-card reveal">
           <div class="step-num">2</div>
           <div class="step-icon">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
@@ -86,7 +90,7 @@
           <h3>Scan at the Booth</h3>
           <p>The election officer scans your QR code at the voting station to verify your identity and open your ballot.</p>
         </div>
-        <div class="step-card">
+        <div class="step-card reveal">
           <div class="step-num">3</div>
           <div class="step-icon">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
@@ -98,7 +102,20 @@
     </div>
   </section>
 
-  <section class="section section-alt">
+  <!-- ── MEET THE CANDIDATES ── -->
+  <section class="section section-alt" id="candidatesSection" style="display:none;">
+    <div class="section-inner">
+      <div class="section-label">This Election</div>
+      <h2 class="section-title">Meet the Candidates</h2>
+      <p class="section-desc">The students running for office in the A.Y. 2026–2027 Supreme Student Council election.</p>
+      <div id="candidatesShowcase"></div>
+      <div style="text-align:center; margin-top:32px;">
+        <a href="/candidates" class="btn btn-gold">View All Candidate Profiles</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt" id="resultsSection">
     <div class="section-inner">
       <div class="section-label">Current Standings</div>
       <h2 class="section-title">Live Results Preview</h2>
@@ -107,7 +124,7 @@
         <div class="loading-msg">Loading results…</div>
       </div>
       <div style="text-align:center; margin-top:28px;">
-        <a href="/results.html" class="btn btn-gold">View Full Results</a>
+        <a href="/results" class="btn btn-gold">View Full Results</a>
       </div>
     </div>
   </section>
@@ -118,7 +135,14 @@
         <h3>Don Bosco Training Center</h3>
         <p>Mati City, Davao Oriental — Officers Election 2026. Powered by the Supreme Student Council.</p>
       </div>
-      
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="/myqr">My QR Code</a></li>
+          <li><a href="/candidates">Candidates</a></li>
+          <li><a href="/results">Results</a></li>
+        </ul>
+      </div>
       <div class="footer-col">
         <h4>Contact</h4>
         <ul>
@@ -134,21 +158,64 @@
 
   <script>
     const ICON_STAR = `<svg class="icon icon-sm" viewBox="0 0 24 24" fill="var(--gold-dark)" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+    const posOrder = ['President','Vice President','Secretary','Treasurer','Auditor','Public Relations Officer',
+      'Committee on Academics','Committee on Culture & Arts','Committee on Sports',
+      'Committee on Environment','Committee on Health & Wellness','Committee on Spirituality'];
 
     const toggle = document.getElementById('navToggle');
     const links = document.getElementById('navLinks');
     toggle.addEventListener('click', () => links.classList.toggle('open'));
 
+    // ── Animated counter ──
+    function animateCounter(el, target, suffix = '', duration = 1400) {
+      if (isNaN(target)) { el.textContent = suffix ? target + suffix : target; return; }
+      const start = performance.now();
+      const update = (now) => {
+        const p = Math.min((now - start) / duration, 1);
+        const ease = 1 - Math.pow(1 - p, 3);
+        const val = Math.round(ease * target);
+        el.textContent = val + suffix;
+        if (p < 1) requestAnimationFrame(update);
+        else el.textContent = target + suffix;
+      };
+      requestAnimationFrame(update);
+    }
+
+    // ── Scroll reveal ──
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); observer.unobserve(e.target); } });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // ── Voting status ribbon ──
+    async function loadVotingStatus() {
+      try {
+        const res = await fetch('/api/settings/voting-status');
+        const data = await res.json();
+        const ribbon = document.getElementById('statusRibbon');
+        if (data.votingOpen) {
+          ribbon.className = 'status-ribbon ribbon-open';
+          ribbon.innerHTML = `<span class="ribbon-dot"></span> Voting is currently <strong>OPEN</strong> — Head to the voting booth now!`;
+        } else {
+          ribbon.className = 'status-ribbon ribbon-closed';
+          ribbon.innerHTML = `<svg style="width:14px;height:14px;vertical-align:middle;margin-right:5px;flex-shrink:0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Voting booth is currently <strong>CLOSED</strong>. Check back later.`;
+        }
+        ribbon.style.display = 'flex';
+      } catch(e) {}
+    }
+
+    // ── Stats ──
     async function loadStats() {
       try {
         const res = await fetch('/api/results');
         const data = await res.json();
-        document.getElementById('statVoted').textContent = data.totalVoted;
-        document.getElementById('statTotal').textContent = data.totalStudents;
+
+        animateCounter(document.getElementById('statVoted'), data.totalVoted);
+        animateCounter(document.getElementById('statTotal'), data.totalStudents);
         const pct = data.totalStudents > 0 ? Math.round((data.totalVoted / data.totalStudents) * 100) : 0;
-        document.getElementById('statPct').textContent = pct + '%';
+        animateCounter(document.getElementById('statPct'), pct, '%');
         const positions = [...new Set(data.results.map(r => r.position))];
-        document.getElementById('statPositions').textContent = positions.length;
+        animateCounter(document.getElementById('statPositions'), positions.length);
 
         const preview = document.getElementById('resultsPreview');
         if (data.results.length === 0) {
@@ -177,7 +244,66 @@
         document.getElementById('resultsPreview').innerHTML = '<div class="loading-msg">Could not load results.</div>';
       }
     }
+
+    // ── Candidates showcase ──
+    async function loadCandidates() {
+      try {
+        const res = await fetch('/api/candidates');
+        const cands = await res.json();
+        if (!cands.length) return;
+
+        const section = document.getElementById('candidatesSection');
+        const showcase = document.getElementById('candidatesShowcase');
+
+        // Group by position, sorted
+        const grouped = {};
+        for (const c of cands) {
+          if (!grouped[c.position]) grouped[c.position] = [];
+          grouped[c.position].push(c);
+        }
+        const sortedPos = Object.keys(grouped).sort((a,b) => {
+          const ai = posOrder.indexOf(a), bi = posOrder.indexOf(b);
+          if (ai === -1 && bi === -1) return a.localeCompare(b);
+          if (ai === -1) return 1; if (bi === -1) return -1;
+          return ai - bi;
+        });
+
+        let html = '';
+        for (const pos of sortedPos) {
+          const group = grouped[pos];
+          html += `<div class="cand-pos-group">
+            <div class="cand-pos-header"><span class="cand-pos-badge">${pos}</span></div>
+            <div class="cand-cards-row">`;
+          for (const c of group) {
+            const initials = c.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+            const avatar = c.photoData
+              ? `<img src="${c.photoData}" class="cand-card-photo" alt="${c.name}" />`
+              : `<div class="cand-card-avatar">${initials}</div>`;
+            html += `<div class="cand-card reveal">
+              ${avatar}
+              <div class="cand-card-name">${c.name}</div>
+              <div class="cand-card-meta">${c.yearLevel} · ${c.section}</div>
+              ${c.motto ? `<div class="cand-card-motto">"${c.motto}"</div>` : ''}
+            </div>`;
+          }
+          html += `</div></div>`;
+        }
+
+        showcase.innerHTML = html;
+        section.style.display = 'block';
+
+        // Observe newly added reveal elements
+        document.querySelectorAll('.cand-card.reveal').forEach(el => observer.observe(el));
+
+        // Move results section after candidates
+        const resultsSection = document.getElementById('resultsSection');
+        section.after(resultsSection);
+      } catch(e) {}
+    }
+
+    loadVotingStatus();
     loadStats();
+    loadCandidates();
   </script>
 </body>
 </html>

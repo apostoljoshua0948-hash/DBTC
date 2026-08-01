@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Candidates — Don Bosco TC Election 2026</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+  <div id="statusRibbon" style="display:none;"></div>
+
+  <nav class="navbar">
+    <div class="nav-inner">
+      <div class="nav-brand">
+        <img class="nav-logo-img" src="/logo.png" alt="DBTC Logo" />
+        <div class="nav-title">
+          <span>Don Bosco TC</span>
+          <span>Mati City — Officers Election 2026</span>
+        </div>
+      </div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/">Home</a></li>
+        <li><a href="/myqr">My QR Code</a></li>
+        <li><a href="/candidates" class="active">Candidates</a></li>
+        <li><a href="/scan">Vote</a></li>
+        <li><a href="/results">Results</a></li>
+        <li><a href="/admin">Admin</a></li>
+      </ul>
+      <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <h1>
+      <svg class="icon icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
+      <span>Candidates</span>
+    </h1>
+    <p>Meet the students running for office in the A.Y. 2026–2027 Supreme Student Council election.</p>
+  </div>
+
+  <!-- Stats bar -->
+  <div class="stats-bar">
+    <div class="stats-inner" style="grid-template-columns: repeat(3, 1fr);">
+      <div class="stat-item">
+        <div class="stat-num" id="statCandidates">—</div>
+        <div class="stat-label">Total Candidates</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num" id="statPosCount">—</div>
+        <div class="stat-label">Positions</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num" id="statVotingStatus">—</div>
+        <div class="stat-label">Voting Status</div>
+      </div>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="section-inner">
+      <div id="candidatesContainer">
+        <div class="loading-msg" style="padding:60px;text-align:center;">
+          <svg class="icon icon-lg" style="color:var(--gray-text);display:block;margin:0 auto 12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          Loading candidates…
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <h3>Don Bosco Training Center</h3>
+        <p>Mati City, Davao Oriental — Officers Election 2026.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="/myqr">My QR Code</a></li>
+          <li><a href="/results">Results</a></li>
+          <li><a href="/scan">Voting Booth</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">&copy; 2026 Don Bosco Training Center — Officers Election, Mati City.</div>
+  </footer>
+
+  <script>
+    document.getElementById('navToggle').addEventListener('click', () =>
+      document.getElementById('navLinks').classList.toggle('open'));
+
+    const posOrder = ['President','Vice President','Secretary','Treasurer','Auditor','Public Relations Officer',
+      'Committee on Academics','Committee on Culture & Arts','Committee on Sports',
+      'Committee on Environment','Committee on Health & Wellness','Committee on Spirituality'];
+
+    // Scroll reveal
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); observer.unobserve(e.target); } });
+    }, { threshold: 0.1 });
+
+    function animateCounter(el, target, suffix = '', duration = 1200) {
+      if (isNaN(target)) { el.textContent = target + suffix; return; }
+      const start = performance.now();
+      const update = (now) => {
+        const p = Math.min((now - start) / duration, 1);
+        const ease = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.round(ease * target) + suffix;
+        if (p < 1) requestAnimationFrame(update);
+        else el.textContent = target + suffix;
+      };
+      requestAnimationFrame(update);
+    }
+
+    async function loadVotingStatus() {
+      try {
+        const res = await fetch('/api/settings/voting-status');
+        const data = await res.json();
+        const ribbon = document.getElementById('statusRibbon');
+        const statusEl = document.getElementById('statVotingStatus');
+        if (data.votingOpen) {
+          ribbon.className = 'status-ribbon ribbon-open';
+          ribbon.innerHTML = `<span class="ribbon-dot"></span> Voting is currently <strong>OPEN</strong>`;
+          ribbon.style.display = 'flex';
+          statusEl.textContent = 'OPEN';
+          statusEl.style.color = '#166534';
+        } else {
+          ribbon.className = 'status-ribbon ribbon-closed';
+          ribbon.innerHTML = `<svg style="width:14px;height:14px;vertical-align:middle;margin-right:5px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Voting booth is currently <strong>CLOSED</strong>`;
+          ribbon.style.display = 'flex';
+          statusEl.textContent = 'CLOSED';
+          statusEl.style.color = '#c53030';
+        }
+      } catch(e) {}
+    }
+
+    async function loadCandidates() {
+      try {
+        const res = await fetch('/api/candidates');
+        const cands = await res.json();
+        const container = document.getElementById('candidatesContainer');
+
+        if (!cands.length) {
+          container.innerHTML = `<div style="text-align:center;padding:80px 24px;color:var(--gray-text);">
+            <svg style="width:56px;height:56px;opacity:.3;display:block;margin:0 auto 16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <p style="font-size:16px;font-weight:600;">No candidates have been registered yet.</p>
+            <p style="font-size:13px;margin-top:6px;">Check back once the admin adds candidates.</p>
+          </div>`;
+          return;
+        }
+
+        animateCounter(document.getElementById('statCandidates'), cands.length);
+        const uniquePos = [...new Set(cands.map(c => c.position))];
+        animateCounter(document.getElementById('statPosCount'), uniquePos.length);
+
+        // Group and sort by position
+        const grouped = {};
+        for (const c of cands) {
+          if (!grouped[c.position]) grouped[c.position] = [];
+          grouped[c.position].push(c);
+        }
+        const sortedPos = Object.keys(grouped).sort((a,b) => {
+          const ai = posOrder.indexOf(a), bi = posOrder.indexOf(b);
+          if (ai === -1 && bi === -1) return a.localeCompare(b);
+          if (ai === -1) return 1; if (bi === -1) return -1;
+          return ai - bi;
+        });
+
+        let html = '<div class="cands-page-grid">';
+        for (const pos of sortedPos) {
+          const group = grouped[pos];
+          html += `<div class="cands-page-pos">
+            <div class="cands-page-pos-header">
+              <svg class="icon icon-md" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg>
+              <div class="cands-page-pos-title">${pos}</div>
+              <div class="cands-page-pos-count">${group.length} candidate${group.length !== 1 ? 's' : ''}</div>
+            </div>
+            <div class="cands-page-grid-inner">`;
+          for (const c of group) {
+            const initials = c.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+            const avatar = c.photoData
+              ? `<img src="${c.photoData}" class="cand-profile-photo" alt="${c.name}" />`
+              : `<div class="cand-profile-avatar">${initials}</div>`;
+            html += `<div class="cand-profile-card reveal">
+              ${avatar}
+              <div class="cand-profile-name">${c.name}</div>
+              <div class="cand-profile-meta">${c.yearLevel} · ${c.section}</div>
+              ${c.motto ? `<div class="cand-profile-motto">"${c.motto}"</div>` : ''}
+            </div>`;
+          }
+          html += `</div></div>`;
+        }
+        html += '</div>';
+
+        container.innerHTML = html;
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+      } catch(e) {
+        document.getElementById('candidatesContainer').innerHTML =
+          '<div class="loading-msg" style="padding:60px;text-align:center;">Could not load candidates. Please try again.</div>';
+      }
+    }
+
+    loadVotingStatus();
+    loadCandidates();
+  </script>
+</body>
+</html>
