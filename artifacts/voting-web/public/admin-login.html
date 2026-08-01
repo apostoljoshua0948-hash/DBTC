@@ -19,9 +19,9 @@
       </div>
       <ul class="nav-links">
         <li><a href="/">Home</a></li>
-        <li><a href="/myqr.html">My QR Code</a></li>
-        <li><a href="/scan.html">Vote</a></li>
-        <li><a href="/results.html">Results</a></li>
+        <li><a href="/myqr">My QR Code</a></li>
+        <li><a href="/scan">Vote</a></li>
+        <li><a href="/results">Results</a></li>
       </ul>
     </div>
   </nav>
@@ -53,7 +53,7 @@
       <button class="btn btn-gold" style="width:100%;padding:13px;font-size:15px;margin-top:4px;" onclick="login()">Log In</button>
 
       <div class="auth-alt">
-        Don't have an account? <a href="/admin-register.html">Register here</a>
+        Don't have an account? <a href="/admin-register">Register here</a>
       </div>
     </div>
   </div>
@@ -80,7 +80,7 @@
         const res = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ username, password }) });
         const data = await res.json();
         if (!res.ok) { errEl.textContent = data.error || 'Login failed.'; errEl.style.display = 'block'; return; }
-        window.location.href = '/admin.html';
+        window.location.href = '/admin';
       } catch (e) { errEl.textContent = 'Network error. Please try again.'; errEl.style.display = 'block'; }
     }
     document.addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
@@ -88,7 +88,7 @@
     (async () => {
       try {
         const res = await fetch('/api/auth/me', { credentials: 'include' });
-        if (res.ok) window.location.href = '/admin.html';
+        if (res.ok) window.location.href = '/admin';
       } catch {}
     })();
   </script>

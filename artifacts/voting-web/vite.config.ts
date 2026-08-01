@@ -3,6 +3,32 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+import type { Plugin } from "vite";
+
+// Map clean URLs → public HTML files
+const CLEAN_URL_MAP: Record<string, string> = {
+  "/myqr":           "/myqr.html",
+  "/scan":           "/scan.html",
+  "/results":        "/results.html",
+  "/admin":          "/admin.html",
+  "/admin-login":    "/admin-login.html",
+  "/admin-register": "/admin-register.html",
+};
+
+function cleanUrlsPlugin(): Plugin {
+  return {
+    name: "clean-urls",
+    configureServer(server) {
+      server.middlewares.use((req, _res, next) => {
+        const url = req.url?.split("?")[0] ?? "";
+        if (CLEAN_URL_MAP[url]) {
+          req.url = req.url!.replace(url, CLEAN_URL_MAP[url]);
+        }
+        next();
+      });
+    },
+  };
+}
 
 const rawPort = process.env.PORT;
 
@@ -32,6 +58,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
     runtimeErrorOverlay(),
+    cleanUrlsPlugin(),
     ...(process.env.NODE_ENV !== "production" &&
     process.env.REPL_ID !== undefined
       ? [

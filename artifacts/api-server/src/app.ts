@@ -42,6 +42,32 @@ app.use(
 app.use("/api", router);
 
 const publicDir = path.join(__dirname, "..", "public");
+
+// ── Clean URL routes (no .html extension) ──
+const CLEAN_URLS: Record<string, string> = {
+  "/myqr":          "myqr.html",
+  "/scan":          "scan.html",
+  "/results":       "results.html",
+  "/admin":         "admin.html",
+  "/officers":      "officers.html",
+  "/announcements": "announcements.html",
+  "/events":        "events.html",
+  "/contact":       "contact.html",
+};
+
+const noCache = (res: import("express").Response) => {
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+};
+
+for (const [route, file] of Object.entries(CLEAN_URLS)) {
+  app.get(route, (_req, res) => {
+    noCache(res);
+    res.sendFile(path.join(publicDir, file));
+  });
+}
+
 app.use(express.static(publicDir, {
   setHeaders(res, filePath) {
     if (filePath.endsWith(".html")) {
@@ -53,7 +79,7 @@ app.use(express.static(publicDir, {
 }));
 
 app.get("/", (_req, res) => {
-  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+  noCache(res);
   res.sendFile(path.join(publicDir, "index.html"));
 });
 

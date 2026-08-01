@@ -19,9 +19,9 @@
       </div>
       <ul class="nav-links">
         <li><a href="/">Home</a></li>
-        <li><a href="/myqr.html">My QR Code</a></li>
-        <li><a href="/scan.html">Vote</a></li>
-        <li><a href="/results.html">Results</a></li>
+        <li><a href="/myqr">My QR Code</a></li>
+        <li><a href="/scan">Vote</a></li>
+        <li><a href="/results">Results</a></li>
       </ul>
     </div>
   </nav>
@@ -40,7 +40,7 @@
         </div>
         <h3 style="color:var(--blue-dark);margin-bottom:8px;">Registration Sent!</h3>
         <p>Your account is <strong>pending approval</strong> by an existing admin. You will be able to log in once your account is approved.</p>
-        <a href="/admin-login.html" class="btn btn-gold" style="margin-top:20px;display:inline-block;">Back to Login</a>
+        <a href="/admin-login" class="btn btn-gold" style="margin-top:20px;display:inline-block;">Back to Login</a>
       </div>
 
       <div id="regForm">
@@ -72,7 +72,7 @@
         <button class="btn btn-gold" style="width:100%;padding:13px;font-size:15px;margin-top:4px;" onclick="register()">Create Account</button>
 
         <div class="auth-alt">
-          Already have an account? <a href="/admin-login.html">Log in here</a>
+          Already have an account? <a href="/admin-login">Log in here</a>
         </div>
       </div>
     </div>
@@ -103,7 +103,7 @@
         const data = await res.json();
         if (!res.ok) { errEl.textContent = data.error || 'Registration failed.'; errEl.style.display = 'block'; return; }
         if (data.isFirst) {
-          window.location.href = '/admin.html';
+          window.location.href = '/admin';
         } else {
           document.getElementById('regForm').style.display = 'none';
           document.getElementById('pendingPanel').style.display = 'block';

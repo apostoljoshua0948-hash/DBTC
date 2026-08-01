@@ -54,10 +54,10 @@
       </div>
       <ul class="nav-links" id="navLinks">
         <li><a href="/">Home</a></li>
-        <li><a href="/myqr.html">My QR Code</a></li>
-        <li><a href="/scan.html">Vote</a></li>
-        <li><a href="/results.html">Results</a></li>
-        <li><a href="/admin.html" class="active">Admin</a></li>
+        <li><a href="/myqr">My QR Code</a></li>
+        <li><a href="/scan">Vote</a></li>
+        <li><a href="/results">Results</a></li>
+        <li><a href="/admin" class="active">Admin</a></li>
       </ul>
       <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
     </div>
@@ -71,8 +71,8 @@
         </div>
         <h2 style="color:var(--blue-dark);margin-bottom:8px;">Admin Access Required</h2>
         <p style="color:var(--gray-text);margin-bottom:24px;">Please log in to access the admin panel.</p>
-        <a href="/admin-login.html" class="btn btn-gold" style="margin-right:8px;">Log In</a>
-        <a href="/admin-register.html" class="btn btn-outline" style="color:var(--blue-dark);border-color:var(--blue-dark);">Register</a>
+        <a href="/admin-login" class="btn btn-gold" style="margin-right:8px;">Log In</a>
+        <a href="/admin-register" class="btn btn-outline" style="color:var(--blue-dark);border-color:var(--blue-dark);">Register</a>
       </div>
     </div>
   </div>
@@ -318,7 +318,7 @@
 
     async function logout() {
       await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
-      window.location.href = '/admin-login.html';
+      window.location.href = '/admin-login';
     }
 
     function switchTab(tab) {
